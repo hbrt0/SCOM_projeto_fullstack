@@ -69,21 +69,21 @@ router.post("/", requireAuth, async (req, res, next) => {
 
 /**
  * DELETE /api/comments/:id
- * Exclusao restrita a administradores.
+ * Exclusão restrita a administradores.
  */
 router.delete("/:id", requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const id = String(req.params.id || "").trim();
-    if (!id) return res.status(400).json({ error: "id obrigatorio" });
+    if (!id) return res.status(400).json({ error: "id obrigatório" });
 
     const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidV4Regex.test(id)) {
-      return res.status(400).json({ error: "id invalido" });
+      return res.status(400).json({ error: "id inválido" });
     }
 
     const { rowCount } = await pool.query(`DELETE FROM comments WHERE id = $1`, [id]);
     if (rowCount === 0) {
-      return res.status(404).json({ error: "comentario nao encontrado" });
+      return res.status(404).json({ error: "comentário não encontrado" });
     }
 
     res.status(204).send();

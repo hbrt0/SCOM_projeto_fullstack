@@ -178,8 +178,7 @@ if (fontIncreaseButton && fontDecreaseButton) {
   const hint = block.querySelector('.comment-auth-hint');
   const textarea = block.querySelector('#comment-message');
   const btn = form?.querySelector('button[type="submit"]');
-
-  const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  let currentUser = null;
 
   async function loadComments() {
     list.innerHTML = '<li>Carregando…</li>';
@@ -192,15 +191,75 @@ if (fontIncreaseButton && fontDecreaseButton) {
         return;
       }
       list.innerHTML = '';
+      const isAdmin = currentUser?.role === 'admin';
       for (const c of data) {
         const li = document.createElement('li');
         li.className = 'comment-item';
+        li.dataset.commentId = c.id;
         const when = new Date(c.created_at).toLocaleString();
-        li.innerHTML = `<strong>${esc(c.author)}</strong> — <time datetime="${esc(c.created_at)}">${esc(when)}</time><br>${esc(c.message)}`;
+        const header = document.createElement('div');
+        header.className = 'comment-header';
+        const meta = document.createElement('div');
+        meta.className = 'comment-meta';
+        const strong = document.createElement('strong');
+        strong.textContent = c.author;
+        const sep = document.createTextNode(' - ');
+        const time = document.createElement('time');
+        time.setAttribute('datetime', c.created_at);
+        time.className = 'comment-date';
+        time.textContent = when;
+        meta.appendChild(strong);
+        meta.appendChild(sep);
+        meta.appendChild(time);
+        header.appendChild(meta);
+        if (isAdmin) {
+          const actions = document.createElement('div');
+          actions.className = 'comment-actions';
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'comment-delete';
+          delBtn.textContent = 'Excluir';
+          delBtn.addEventListener('click', () => handleDelete(c.id, delBtn));
+          actions.appendChild(delBtn);
+          header.appendChild(actions);
+        }
+        const body = document.createElement('p');
+        body.textContent = c.message ?? '';
+        li.appendChild(header);
+        li.appendChild(body);
         list.appendChild(li);
       }
     } catch (_) {
       list.innerHTML = '<li>Não foi possível carregar comentários.</li>';
+    }
+  }
+
+  async function handleDelete(id, trigger) {
+    if (!window.confirm('Remover este comentário?')) return;
+    try {
+      if (trigger) trigger.disabled = true;
+      const csrf = await getCsrf();
+      const resp = await fetch(`/api/comments/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'x-csrf-token': csrf }
+      });
+
+      if (resp.status === 404) {
+        alert('Comentário já foi removido.');
+      } else if (!resp.ok) {
+        if (resp.status === 403) {
+          alert('Apenas administradores podem remover comentários.');
+          return;
+        }
+        throw new Error();
+      }
+
+      await loadComments();
+    } catch {
+      alert('Não foi possível remover o comentário.');
+    } finally {
+      if (trigger) trigger.disabled = false;
     }
   }
 
@@ -224,8 +283,8 @@ if (fontIncreaseButton && fontDecreaseButton) {
   }
 
   // Estado logado vs não logado
-  const user = await me();
-  const isAuth = !!user;
+  currentUser = await me();
+  const isAuth = !!currentUser;
   if (form) form.hidden = !isAuth;
   if (hint) hint.hidden = isAuth;
 
@@ -237,7 +296,7 @@ if (fontIncreaseButton && fontDecreaseButton) {
       return;
     }
     try {
-      btn.disabled = true;
+      if (btn) btn.disabled = true;
       const csrf = await getCsrf();
       const r = await fetch('/api/comments', {
         method: 'POST',
@@ -254,7 +313,7 @@ if (fontIncreaseButton && fontDecreaseButton) {
     } catch {
       alert('Não foi possível enviar seu comentário.');
     } finally {
-      btn.disabled = false;
+      if (btn) btn.disabled = false;
     }
   });
 

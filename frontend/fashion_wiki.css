@@ -881,6 +881,32 @@ textarea {
   border-radius: 12px;
   padding: .8rem .95rem;
 }
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: flex-start;
+}
+.comment-actions {
+  display: flex;
+  gap: .5rem;
+}
+.comment-delete {
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+.comment-delete:hover,
+.comment-delete:focus {
+  text-decoration: underline;
+}
+.comment-delete:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
 .comment-list .date {
   opacity: .7;
   margin-left: .5rem;
