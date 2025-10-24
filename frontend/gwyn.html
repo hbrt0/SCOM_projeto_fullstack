@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gwyn, Lord of Cinder — Dark Souls Wiki</title>
+  <meta name="description" content="Guia completo sobre Gwyn, Lord of Cinder, o chefe final de Dark Souls. Inclui lore, estratégias e drops.">
+  <link rel="icon" type="image/png" href="img\bonfire_logo_light.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/fashion_wiki.css" />
+  <link rel="stylesheet" href="/gwyn.css" />
+</head>
+
+<script>
+(function () {
+  const block = document.querySelector(".comments[data-slug]");
+  if (!block) return;
+
+  const slug = block.dataset.slug;
+  const list = block.querySelector(".comment-list");
+  const form = block.querySelector(".comment-form");
+  const hint = block.querySelector(".comment-auth-hint");
+
+  const esc = s => String(s).replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  async function getMe() {
+    const r = await fetch('/api/auth/me', { credentials: 'include' });
+    if (r.status === 204) return null;      // ✅ trata anônimo sem tentar .json()
+    if (!r.ok) return null;
+    const user = await r.json();
+    return { authenticated: true, user };
+  }
+
+  async function getCSRF() {
+    const r = await fetch('/api/auth/csrf', { credentials: 'include' });
+    if (!r.ok) return '';
+    const j = await r.json();
+    return j.csrfToken || '';
+  }
+
+  async function loadComments() {
+    list.innerHTML = '<li>Carregando…</li>';
+    try {
+      const res = await fetch(`/api/comments?slug=${encodeURIComponent(slug)}`, { credentials: 'include' });
+      const data = await res.json();
+      list.innerHTML = "";
+      if (!Array.isArray(data) || !data.length) {
+        list.innerHTML = "<li>Seja o primeiro a comentar.</li>";
+        return;
+      }
+      for (const c of data) {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${esc(c.author)}</strong>
+          <span class="date">${new Date(c.created_at).toLocaleString()}</span>
+          <p>${esc(c.message)}</p>
+        `;
+        list.appendChild(li);
+      }
+    } catch {
+      list.innerHTML = "<li>Não foi possível carregar os comentários.</li>";
+    }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const payload = { slug, message: fd.get("message"), website: fd.get("website") };
+    if (!payload.message) return;
+
+    const btn = form.querySelector("button");
+    btn.disabled = true;
+    try {
+      const token = await getCSRF();
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
+        body: JSON.stringify(payload),
+        credentials: 'include'  // ✅ manda cookie de sessão
+      });
+      if (res.status === 401) { alert('Faça login para comentar.'); return; }
+      if (!res.ok) { alert('Erro ao enviar o comentário.'); return; }
+      form.reset();
+      await loadComments();
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  (async () => {
+    const me = await getMe();
+    const isAuth = !!(me && me.authenticated);
+    form.hidden = !isAuth;
+    hint.hidden = isAuth;
+    await loadComments();
+  })();
+})();
+</script>
+
+<body class="article-layout">
+  <div class="wrap">
+    <header class="site-header" role="banner">
+      <a href="/dark_wiki.html" class="brand" aria-label="Dark Souls Wiki - Início">
+        <div class="logo" aria-hidden="true">
+          <img src="img\bonfire_logo_light.png" alt="" style="width:64px;height:64px;border-radius:1500px;object-fit:cover;">
+        </div>
+        <div class="brand-text">
+          <h1>DARK SOULS WIKI</h1>
+          <p class="muted">Lore, bosses, builds and guides</p>
+        </div>
+      </a>
+      
+      <div class="header-actions" role="navigation" aria-label="Ações do cabeçalho">
+        <div class="search" id="search-container" role="search" aria-label="Busca">
+
+          <button id="search-button" class="search-button" aria-label="Iniciar busca">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="10.5" cy="10.5" r="5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <input id="search-input" type="text" placeholder="Buscar boss, arma, área..." aria-label="Campo de busca">
+
+        </div>
+      
+
+          <button class="btn" id="btn-theme" aria-pressed="false" title="Alternar tema">
+            <span id="theme-label">Light Bonfire</span>
+          </button>
+          <a class="btn primary" id="btn-login" href="/login.html">Login</a>            
+      </div>
+    </header>
+    <nav class="header-navigation" aria-label="Categorias da wiki" style="display: flex;">
+      <div class="nav-wrapper">
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Character</a>
+        <div class="dropdown-menu">
+          <a href="#">Character Info</a>
+          <a href="#">Classes</a>
+          <a href="#">Stats</a>
+          <a href="#">Buids</a>
+          <nav class="submenu">
+              <a href="#">PvE Builds</a>
+              <a href="#">PvP Builds</a>
+            </nav>
+        </div>
+      </div>
+
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Equipment</a>
+        <div class="dropdown-menu">
+          <a href="#">Weapons</a>
+            <nav class="submenu">
+              <a href="#">Boss Souls Weapons</a>
+              <a href="#">Flames</a>
+              <a href="#">Catalysts</a>
+              <a href="#">Talismans</a>
+            </nav>
+          <a href="#">Spells</a>
+          <nav class="submenu">
+              <a href="#">Miracles</a>
+              <a href="#">Piromancies</a>
+              <a href="#">Sorceries</a>
+            </nav>
+          <a href="#">Armor</a>
+          <nav class="submenu">
+              <a href="#">Helms</a>
+              <a href="#">Chest Armor</a>
+              <a href="#">Gauntlets</a>
+              <a href="#">Leg Armor</a>
+            </nav>
+          <a href="#">Shields</a>
+          <a href="#">Rings</a>
+        </div>
+      </div>
+
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Bosses</a>
+        <div class="dropdown-menu">
+          <a href="#">Main Bosses</a>
+          <a href="#">Secundary Bosses</a>
+          <a href="#">DLC Bosses</a>
+        </div>
+      </div>
+
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Guides</a>
+        <div class="dropdown-menu">
+          <a href="#">New Player</a>
+          <a href="#">Walkthroughs</a>
+          <a href="#">Game Progress Route</a>
+          <a href="#">Bosses</a>
+        </div>
+      </div>
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">World</a>
+        <div class="dropdown-menu">
+          <a href="#">Locations</a>
+          <nav class="submenu">
+              <a href="#">Maps</a>
+              <a href="#">Bonfires</a>
+            </nav>
+          <a href="#">NPCs</a>
+          <a href="#">Merchants</a>
+          <a href="#">Enemies</a>
+          <nav class="submenu">
+              <a href="#">Bosses</a>
+              <a href="#">Invading NPC Phantoms</a>
+            </nav>
+          <a href="#">Lore</a>
+        </div>
+      </div>
+
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Inventory</a>
+      </div>
+      <div class="nav-wrapper">
+      </div>
+    </nav>
+<main role="main">
+      <section class="article-page">
+        <aside class="article-sidebar">
+          <figure class="article-image">
+            <img src="img\gwyn.jpg" alt="Gwyn, Lord of Cinder em sua arena">
+          </figure>
+          <div class="info-box">
+            <h4>Gwyn, Lord of Cinder</h4>
+            <div class="info-table">
+              <div class="info-row"><strong>Localização</strong><span>Kiln of the First Flame</span></div>
+              <div class="info-row"><strong>Drops</strong><span>Soul of Gwyn</span></div>
+              <div class="info-row"><strong>Almas (NG)</strong><span>70,000</span></div>
+              <div class="info-row"><strong>Saúde (NG)</strong><span>4,250</span></div>
+            </div>
+          </div>
+          <div class="info-box">
+            <h4>Resistências</h4>
+            <div class="info-table">
+                <div class="info-row"><strong>Resiste</strong><span>Fogo</span></div>
+                <div class="info-row"><strong>Fraco contra</strong><span>Oculto, Parry</span></div>
+            </div>
+          </div>
+        </aside>
+        <article class="article-content">
+          <header class="article-header">
+            <h2 class="article-title">Gwyn, Lord of Cinder</h2>
+            <p class="muted">Lord of Sunlight e Chefe Final de Dark Souls.</p>
+          </header>
+
+          <p><strong>Gwyn, o Lord of Cinder</strong>, é o chefe final de Dark Souls. Antes de se tornar uma casca de seu antigo eu, ele era o radiante Lord of Sunlight, uma entidade de poder imensurável cuja luminância rivalizava com o próprio sol. Ele foi quem liderou a guerra contra os Dragões Eternos, dando início à Era do Fogo. Para evitar que a Primeira Chama se apagasse, ele se sacrificou, tornando-se combustível para a chama e transformando-se no Lord of Cinder que o jogador encontra no Kiln of the First Flame.</p>
+
+          <h3 class="section-title">Lore</h3>
+          <p>No início da Era do Fogo, Gwyn descobriu uma Lord Soul, tornando-se o Lord of Sunlight. Com o poder do sol e dos raios, ele e seus cavaleiros "descascaram as escamas de pedra" dos dragões, pondo fim à Era dos Antigos. Com o passar do tempo, a Primeira Chama começou a desaparecer. Temendo a escuridão e a ascensão do Dark Lord, Gwyn viajou para o Kiln of the First Flame e se sacrificou para reascender a chama, um ato que o queimou, deixando-o oco, mas ainda com uma alma imensamente poderosa.</p>
+
+          <blockquote class="lore-quote">
+            "Lord Gwyn estremeceu diante da Escuridão. Apegando-se à sua Era do Fogo, e com um medo terrível dos humanos, e do Dark Lord que um dia nasceria entre eles, Lord Gwyn resistiu ao curso da natureza."
+            <cite>— Darkstalker Kaathe</cite>
+          </blockquote>
+
+          <h3 class="section-title">Estratégia de Combate</h3>
+          <p>Gwyn é um chefe extremamente rápido e agressivo. A estratégia mais famosa e eficaz contra ele é o <strong>parry</strong>. Quase todos os seus ataques com a espada podem ser aparados, o que abre uma janela para um riposte devastador.</p>
+          <ul>
+            <li><strong>Parry & Riposte:</strong> A tática principal. Use um escudo pequeno ou médio com boa estabilidade (como o Black Knight Shield) e o Hornet Ring para maximizar o dano.</li>
+            <li><strong>Sem Parry:</strong> Para builds que não usam parry, a chave é a paciência. Use um escudo com alta estabilidade (Greatshield of Artorias) e uma lança para atacar com segurança enquanto bloqueia.</li>
+            <li><strong>Aberturas:</strong> Seus ataques de agarrão e chute, quando errados, deixam uma grande abertura para 2 a 3 ataques. Fique a uma distância média para provocá-los.</li>
+            <li><strong>Magia:</strong> É possível usar as colunas de pedra da arena para se proteger. Magias com tempo de conjuração rápido, como Great Combustion, são eficazes.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="comments" data-slug="gwyn">
+        <h3>Comentários</h3>
+
+        <!-- Mostra isso quando NÃO estiver logado -->
+        <p class="comment-auth-hint" hidden>
+          Para comentar, <a href="/login">faça login</a>.
+        </p>
+
+        <!-- Formulário visível só quando logado -->
+        <form class="comment-form" autocomplete="off" hidden>
+          <input type="text" name="website" style="display:none" tabindex="-1" aria-hidden="true"> <!-- honeypot -->
+          <textarea name="message" placeholder="Escreva um comentário…" required maxlength="2000" rows="4"></textarea>
+          <button type="submit" class="btn">Enviar</button>
+        </form>
+
+        <ol class="comment-list"></ol>
+      </section>
+
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+        <div>© <strong>Dark Souls Wiki</strong> — Projeto SCOM</div>
+        <div class="muted">Yes, indeed... | <span class="muted">HTML • CSS • JS</span></div>
+    </footer>
+  </div>
+
+<div class="fixed-action-buttons">
+  <button class="action-btn" id="font-increase-button" aria-label="Aumentar fonte">A+</button>
+  <button class="action-btn" id="font-decrease-button" aria-label="Diminuir fonte">A-</button>
+  <button class="action-btn music-button" id="music-toggle" aria-label="Tocar música ambiente">
+    <svg class="icon-play" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+    <svg class="icon-pause" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+  </button>
+</div>
+
+<audio id="background-music" loop>
+  <source src="audio/Firelink Shrine - Dark Souls Soundtrack 03.mp3" type="audio/mpeg">
+  Seu navegador não suporta o elemento de áudio.
+</audio>
+
+<script src="main.js" defer></script>
+
+</body>
+</html>

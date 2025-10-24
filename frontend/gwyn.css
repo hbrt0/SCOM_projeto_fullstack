@@ -1,0 +1,161 @@
+/* =======================================
+       ESTILOS DA PÁGINA DE ARTIGO (GWYN)
+   ======================================= */
+
+body {
+  background-image: url('img\gwyn_wpp.jpg');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: top center;
+  background-size: cover;
+
+  margin: 0;
+  padding: 24px; /*manter o espaçamento*/
+  background-color: var(--bg);
+  color: var(--text-color);
+  font-family: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.45;
+  transition: background .25s var(--ease), color .25s var(--ease);
+}
+
+body.light-theme .logo {
+  content: url("img/bonfire_logo_light.png");
+  width:64px;
+  height: 64px;
+  border-radius: 1500px;
+  object-fit: cover;
+}
+
+.site-header .brand-text h1 {
+    color: white;
+}
+.site-header .brand-text p {
+  --muted: #9da3a6;
+}
+.header-actions .btn.primary {
+  background: linear-gradient(180deg, rgba(202, 163, 74, 0.12), rgba(202, 163, 74, 0.06));
+  border-color: rgba(202, 163, 74, 0.25);
+  color: #caa34a; /* Dourado */
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: box-shadow .25s var(--ease), transform .25s var(--ease);
+}
+.search:focus-within {
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+  transform: translateY(-1px)
+}
+.search-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 8px; /*espaçamento do ícone*/
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  min-width: 180px;
+}
+
+/* Anula a grade de 2 colunas da página principal APENAS em páginas de artigo */
+.article-layout .wrap {
+  grid-template-columns: 1fr;
+}
+
+/* Faz a sidebar do artigo flutuar para a direita */
+.article-sidebar {
+  float: right;
+  width: 320px;
+  margin-left: 24px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  height: auto;
+}
+
+/* --- ESTILOS VISUAIS (permanecem os mesmos) --- */
+
+.article-header {
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+.article-title {
+  margin: 0 0 4px 0;
+  font-family: Cinzel, serif;
+  font-size: 28px;
+}
+.article-content p, .article-content ul {
+  line-height: 1.7;
+  color: var(--muted);
+}
+.article-content ul {
+  padding-left: 20px;
+}
+.lore-quote {
+  border-left: 3px solid var(--accent);
+  padding-left: 16px;
+  margin: 24px 0;
+  font-style: italic;
+}
+.lore-quote cite {
+  display: block;
+  margin-top: 8px;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--text-color);
+}
+.article-sidebar .article-image img {
+  width: 100%;
+  display: block;
+}
+.info-box {
+  background-color: rgba(var(--panel-rgb), 0.5);
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.info-box h4 {
+  margin: 0 0 12px 0;
+  font-family: Cinzel, serif;
+}
+.info-table .info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.info-table .info-row:last-child {
+  border-bottom: none;
+}
+.info-table .info-row span {
+  color: var(--muted);
+}
+
+/* Responsividade para a sidebar do artigo */
+@media (max-width: 980px) {
+  .article-sidebar {
+    float: none;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 24px;
+  }
+}

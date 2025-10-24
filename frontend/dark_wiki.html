@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dark Souls — Wiki</title>
+  <meta name="description" content="Wiki de Dark Souls — bosses, áreas, armas e guias.">
+  <link rel="icon" type="image/png" href="img/bonfire_logo_light.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/fashion_wiki.css" />
+ 
+</head>
+<script>
+  (function () {
+    const container = document.getElementById('search-container');
+    const button = document.getElementById('search-button');
+    const input = document.getElementById('search-input');
+
+    if (!container || !button || !input) return;
+
+    // Abre ao clicar no ícone e foca no input
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      container.classList.add('open');
+      input.focus();
+    });
+
+    // Fecha ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target)) {
+        container.classList.remove('open');
+      }
+    });
+
+    // Fecha ao apertar Esc
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        container.classList.remove('open');
+        button.focus();
+      }
+    });
+  })();
+</script>
+
+<script>
+(function () {
+  const block = document.querySelector(".comments[data-slug]");
+  if (!block) return;
+
+  const slug = block.dataset.slug;
+  const list = block.querySelector(".comment-list");
+  const form = block.querySelector(".comment-form");
+  const hint = block.querySelector(".comment-auth-hint");
+
+  const esc = s => String(s).replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  async function getMe() {
+    const r = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!r.ok) return null;
+    return await r.json();
+  }
+
+  async function getCSRF() {
+    const r = await fetch('/api/auth/csrf', { credentials: 'include' });
+    if (!r.ok) return '';
+    const j = await r.json();
+    return j.csrfToken || '';
+  }
+
+  async function loadComments() {
+    list.innerHTML = '<li>Carregando…</li>';
+    try {
+      const r = await fetch(`/api/comments?slug=${encodeURIComponent(slug)}`, { credentials: 'include' });
+      if (!r.ok) throw new Error('Falha ao listar');
+      const data = await r.json();
+
+      list.innerHTML = "";
+      if (!Array.isArray(data) || !data.length) {
+        list.innerHTML = "<li>Seja o primeiro a comentar.</li>";
+        return;
+      }
+      for (const c of data) {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${esc(c.author)}</strong>
+          <span class="date">${new Date(c.created_at).toLocaleString()}</span>
+          <p>${esc(c.message)}</p>
+        `;
+        list.appendChild(li);
+      }
+    } catch {
+      list.innerHTML = "<li>Não foi possível carregar os comentários.</li>";
+    }
+  }
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector("button[type=submit]");
+    const ta  = form.querySelector("textarea[name=message]");
+    const message = (ta?.value || '').trim();
+    if (!message) return;
+
+    btn.disabled = true;
+    try {
+      const csrf = await getCSRF();
+      const r = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrf
+        },
+        body: JSON.stringify({ slug, message }),
+        credentials: 'include'
+      });
+      if (!r.ok) throw new Error('Falha ao enviar');
+      form.reset();
+      await loadComments();
+    } catch (err) {
+      alert('Não foi possível enviar seu comentário.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  (async () => {
+    const me = await getMe();       // { authenticated: true/false, user? }
+    const isAuth = !!(me && me.authenticated);
+    if (form) form.hidden = !isAuth;
+    if (hint) hint.hidden = isAuth;
+    await loadComments();
+  })();
+})();
+</script>
+
+
+
+<body>
+  <div class="wrap" role="main">
+    <header class="site-header" role="banner">
+      <a href="#" class="brand" aria-label="Dark Souls Wiki - Início">
+        <div class="logo" aria-hidden="true">
+          <img src="img/bonfire_logo_light.png" alt="" style="width:64px;height:64px;border-radius:1500px;object-fit:cover;">
+        </div>
+        <div>
+          <h1>DARK SOULS WIKI</h1>
+          <p class="muted">Lore, bosses, builds and guides</p>
+        </div>
+      </a>
+      
+      <div class="header-actions" aria-label="Ações do cabeçalho">
+        <div class="search" id="search-container" role="search" aria-label="Busca">
+
+          <button id="search-button" class="search-button" aria-label="Iniciar busca">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="10.5" cy="10.5" r="5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <input id="search-input" type="text" placeholder="Buscar boss, arma, área..." aria-label="Campo de busca">
+        </div>
+
+          <button class="btn" id="btn-theme" aria-pressed="false" title="Alternar tema">
+            <span id="theme-label">Light Bonfire</span>
+          </button>
+
+          <a style="font-family: cinzel;" class="btn primary" id="btn-login" href="/login.html">Login</a>            
+      </div>
+    </header>
+    <nav class="header-navigation" aria-label="Categorias da wiki">
+      <div class="nav-wrapper">
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Character</a>
+        <div class="dropdown-menu">
+          <a href="#">Character Info</a>
+          <a href="#">Classes</a>
+          <a href="#">Stats</a>
+          <a href="#">Buids</a>
+          <nav class="submenu">
+              <a href="#">PvE Builds</a>
+              <a href="#">PvP Builds</a>
+            </nav>
+        </div>
+      </div>
+
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Equipment</a>
+        <div class="dropdown-menu">
+          <a href="#">Weapons</a>
+            <nav class="submenu">
+              <a href="#">Boss Souls Weapons</a>
+              <a href="#">Flames</a>
+              <a href="#">Catalysts</a>
+              <a href="#">Talismans</a>
+            </nav>
+          <a href="#">Spells</a>
+          <nav class="submenu">
+              <a href="#">Miracles</a>
+              <a href="#">Piromancies</a>
+              <a href="#">Sorceries</a>
+            </nav>
+          <a href="#">Armor</a>
+          <nav class="submenu">
+              <a href="#">Helms</a>
+              <a href="#">Chest Armor</a>
+              <a href="#">Gauntlets</a>
+              <a href="#">Leg Armor</a>
+            </nav>
+          <a href="#">Shields</a>
+          <a href="#">Rings</a>
+        </div>
+      </div>
+
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Bosses</a>
+        <div class="dropdown-menu">
+          <a href="#">Main Bosses</a>
+          <a href="#">Secundary Bosses</a>
+          <a href="#">DLC Bosses</a>
+        </div>
+      </div>
+
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Guides</a>
+        <div class="dropdown-menu">
+          <a href="#">New Player</a>
+          <a href="#">Walkthroughs</a>
+          <a href="#">Game Progress Route</a>
+          <a href="#">Bosses</a>
+        </div>
+      </div>
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">World</a>
+        <div class="dropdown-menu">
+          <a href="#">Locations</a>
+          <nav class="submenu">
+              <a href="#">Maps</a>
+              <a href="#">Bonfires</a>
+            </nav>
+          <a href="#">NPCs</a>
+          <a href="#">Merchants</a>
+          <a href="#">Enemies</a>
+          <nav class="submenu">
+              <a href="#">Bosses</a>
+              <a href="#">Invading NPC Phantoms</a>
+            </nav>
+          <a href="#">Lore</a>
+        </div>
+      </div>
+
+      <div class="dropdown-container">
+        <a href="#" class="dropdown-trigger" role="link">Inventory</a>
+      </div>
+      <div class="nav-wrapper">
+      </div>
+    </nav>
+
+    <main aria-labelledby="main-title">
+      <section>
+          <figure style="margin:0; border-radius:8px; overflow:hidden;">
+            <img id="game_logo" src="img/dark-souls-remaster-wiki-logo.png" alt="capa dark souls" >
+          </figure>
+      </section>
+
+      <section class="hero">
+        <div>
+          <h2 id="hero-title">Welcome, Undead</h2>
+          <p>Reúna almas, estude bosses e escolha a sua build. Consulte guias e expanda seu conhcimento sobre o universo Dark Souls.</p>
+          <p class="muted small">Dica: pressione <span class="kbd">/</span> para focar a busca.</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="artigos-title">
+        <h3 id="artigos-title" class="section-title">Highlights</h3>
+
+        <div class="cards">
+          <a href="/gwyn.html" class="card-link">
+            <article class="card" aria-labelledby="a-1-title">
+              <div class="thumb" aria-hidden="true">
+                <img src="img/gwyn.jpg" alt="plim plim plom" style="width:100%;height:100%;">
+              </div>
+              <div>
+                <h3 id="a-1-title">Gwyn, Lord of Cinder</h3>
+                <p class="muted">Categoria: Main Bosses • Dificuldade: ★★★★★</p>
+                <p>No início da Era do Fogo, Gwyn descobriu uma Lord Soul, tornando-se o Lord of Sunlight. Com o poder do sol e dos raios, ele e seus cavaleiros...</p>
+              </div>
+            </article>
+          </a>
+
+          <article class="card" aria-labelledby="a-2-title">
+            <div class="thumb" aria-hidden="true">
+              <img src="img/anor-londo.png" alt="plim plim plom" style="width:100%;height:100%;">
+            </div>
+            <div>
+              <h3 id="a-2-title">Anor Londo — Guia de Área</h3>
+              <p class="muted">Última edição: 04 set • Ambiente: Catedral</p>
+              <p>Arquitetura vertical, inimigos arcanos e pontos de vantagem. Use arco para remover arqueiros do alto.</p>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="a-3-title">
+            <div class="thumb" aria-hidden="true">
+              <img src="img/Long_Sword.png" alt="plim plim plom" style="width:100%;height:100%;">
+            </div>
+            <div>
+              <h3 id="a-3-title">Espada do Cavaleiro</h3>
+              <p class="muted">Tipo: Física • Peso: Médio</p>
+              <p>Boa para iniciantes, escala em força e destreza. Recomendado para builds híbridas.</p>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="a-4-title">
+            <div class="thumb" aria-hidden="true">
+              <img src="img/tank_build.jpg" alt="plim plim plom" style="width:100%;height:100%;">
+            </div>
+            <div>
+              <h3 id="a-4-title">Build — Tank/Parry</h3>
+              <p class="muted">Nível recomendado: 50+</p>
+              <p>Alta vitalidade, escudo com 100% bloqueio físico e foco em resistência.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section style="margin-top:18px;">
+        <h3 style="font-family:Cinzel, serif;">Media</h3>
+        <div style="display:grid;gap:12px;flex-wrap:wrap;margin-top:10px">
+          <figure style="margin:0; border-radius:8px; overflow:hidden; border:1px solid rgba(255, 0, 0, 0.03);">
+            <img src="img/logo_ds.jpg" alt="Ilustração Dark Souls" style="width:100%;display:block;height:auto;">
+            <figcaption class="muted small" ></figcaption>
+          </figure>
+
+          <div style="flex:1; min-width:500;">
+            <iframe width="100%" height="500px" src="https://www.youtube.com/embed/KfjG9ZLGBHE?si=ycYlNZdi9AO0SJTf" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+        </div>
+      </section>
+
+      <section class="comments" data-slug="dark_wiki">
+        <h3>Comentários</h3>
+
+        <!-- Mostra isso quando NÃO estiver logado -->
+        <p class="comment-auth-hint" hidden>
+          Para comentar, <a href="/login">faça login</a>.
+        </p>
+
+        <!-- Formulário visível só quando logado -->
+        <form class="comment-form" autocomplete="off" hidden>
+          <input type="text" name="website" style="display:none" tabindex="-1" aria-hidden="true"> <!-- honeypot -->
+          <textarea name="message" placeholder="Escreva um comentário…" required maxlength="2000" rows="4"></textarea>
+          <button type="submit" class="btn">Enviar</button>
+        </form>
+
+        <ol class="comment-list"></ol>
+      </section>
+
+
+    </main>
+
+    <aside class="sidebar" role="complementary" aria-label="Barra lateral">
+  
+      <div class="side-section">
+        <div class="nav-grid">
+
+          <div class="nav-item">
+            <img src="https://placehold.co/24x24/caa34a/0f1113?text=C" alt="" class="nav-icon">
+            <div>
+              <h5>Character</h5>
+              <div class="nav-links">
+                <a href="#">Character Info</a> | <a href="#">Classes</a> | <a href="#">Stats</a> |
+                <div class="dropdown-container-sidebar">
+                      <a href="#" class="dropdown-trigger-sidebar">Builds</a>
+                      <div class="dropdown-menu-sidebar">
+                        <a href="#">PvE Builds</a>
+                        <a href="#">PvP Builds</a>
+                      </div>
+                    </div>
+                    
+              
+            </div>
+          </div>
+        </div>
+
+          <div class="nav-item">
+            <img src="https://placehold.co/24x24/caa34a/0f1113?text=E" alt="" class="nav-icon">
+            <div>
+              <h5>Equipment</h5>
+              <div class="nav-links">
+      
+                <div class="dropdown-container-sidebar">
+                  <a href="#" class="dropdown-trigger-sidebar">Weapons</a>
+                  <div class="dropdown-menu-sidebar">
+                    <a href="#">Boss Souls Weapons</a>
+                    <a href="#">Flames</a>
+                    <a href="#">Catalysts</a>
+                    <a href="#">Talismans</a>
+                  </div>
+                </div>
+              | 
+                <div class="dropdown-container-sidebar">
+                    <a href="#" class="dropdown-trigger-sidebar">Spells</a>
+                    <div class="dropdown-menu-sidebar">
+                      <a href="#">Miracles</a>
+                      <a href="#">Pyromancies</a>
+                      <a href="#">Sorceries</a>
+                    </div>
+                  </div>
+              | 
+                <div class="dropdown-container-sidebar">
+                      <a href="#" class="dropdown-trigger-sidebar">Armor</a>
+                      <div class="dropdown-menu-sidebar">
+                        <a href="#">Helms</a>
+                        <a href="#">Chest Armor</a>
+                        <a href="#">Gauntlets</a>
+                        <a href="#">Leg Armor</a>
+                      </div>
+                    </div>
+                    
+              | <a href="#">Shields</a> | <a href="#">Rings</a>
+            </div>
+          </div>
+        </div>
+
+        
+
+        <div class="nav-item">
+          <img src="https://placehold.co/24x24/caa34a/0f1113?text=B" alt="" class="nav-icon">
+          <div>
+            <h5>Bosses</h5>
+            <p class="nav-links">
+              <a href="#">Main Bosses</a> | <a href="#">Secundary Bosses</a> | <a href="#">DLC Bosses</a>
+            </p>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <img src="https://placehold.co/24x24/caa34a/0f1113?text=G" alt="" class="nav-icon">
+          <div>
+            <h5>Guides</h5>
+            <p class="nav-links">
+              <a href="#">New Player</a> | <a href="#">Walkthroughs</a> | <a href="#">Game Progress Route</a> | <a href="#">Bosses</a>
+            </p>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <img src="https://placehold.co/24x24/caa34a/0f1113?text=W" alt="" class="nav-icon">
+          <div>
+            <h5>World</h5>
+            <div class="nav-links">
+
+              <div class="dropdown-container-sidebar">
+                <a href="#" class="dropdown-trigger-sidebar">Locations</a>
+                  <div class="dropdown-menu-sidebar">
+                    <a href="#">Maps</a>
+                    <a href="#">Bonfires</a>
+                  </div>
+              </div>
+              |
+              <a href="#">NPCs</a> | <a href="#">Merchants</a> |
+              <div class="dropdown-container-sidebar">
+                <a href="#" class="dropdown-trigger-sidebar">Enemies</a>
+                  <div class="dropdown-menu-sidebar">
+                    <a href="#">Bosses</a>
+                    <a href="#">Invading NPC Phantoms</a>
+                  </div>
+              </div>
+              | <a href="#">Lore</a>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <img src="https://placehold.co/24x24/caa34a/0f1113?text=I" alt="" class="nav-icon">
+          <div>
+            <a id="inventory" href="#"><h5>Inventory</h5></a>
+          </div>
+        </div>
+
+        
+        </div>
+      </div>
+    </aside>
+
+
+    <footer class="site-footer" role="contentinfo">
+      <div>© <strong>Dark Souls Wiki</strong> — Projeto SCOM</div>
+      <div class="muted">Yes, indeed... | <span class="muted">HTML • CSS • JS</span></div>
+    </footer>
+  </div>
+
+<div class="fixed-action-buttons">
+  <button class="action-btn" id="font-increase-button" aria-label="Aumentar fonte">A+</button>
+  <button class="action-btn" id="font-decrease-button" aria-label="Diminuir fonte">A-</button>
+  <button class="action-btn music-button" id="music-toggle" aria-label="Tocar música ambiente">
+    <svg class="icon-play" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+    <svg class="icon-pause" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+  </button>
+</div>
+
+<audio id="background-music" loop>
+  <source src="audio/Firelink Shrine - Dark Souls Soundtrack 03.mp3" type="audio/mpeg">
+  Seu navegador não suporta o elemento de áudio.
+</audio>
+
+<script src="main.js"></script>
+</body>
+</html>

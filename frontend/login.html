@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login — Dark Souls Wiki</title>
+  <link rel="icon" type="image/png" href="img\bonfire_logo_light.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/fashion_wiki.css" />
+  <link rel="stylesheet" href="/login_style.css" />
+</head>
+<body class="login-page-body">
+  <div class="login-container">
+    <header class="login-header">
+      <a href="/dark_wiki.html" class="brand" aria-label="Voltar para a Dark Souls Wiki">
+        <div class="logo" aria-hidden="true">
+          <img src="img\bonfire_logo_light.png" alt="" style="width:48px;height:48px;border-radius:1500px;object-fit:cover;">
+        </div>
+        <div>
+          <h1>DARK SOULS WIKI</h1>
+        </div>
+      </a>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-link active" data-form="login-form">Login</button>
+      <button class="tab-link" data-form="register-form">Cadastro</button>
+    </div>
+
+    <div class="form-content">
+      <form id="login-form" class="form active" autocomplete="off" spellcheck="false">
+        <div class="field">
+            <label for="login-username">Nome de Usuário</label>
+            <input id="login-username" type="text" required>
+        </div>
+        <div class="field password-field">
+          <label for="login-password">Senha</label>
+          <div class="password-wrapper">
+            <input id="login-password" type="password" required>
+            <button type="button" class="toggle-password" data-target="login-password" aria-label="Mostrar senha">👁</button>   
+          </div>
+        </div>
+        <div class="form-error" id="login-error"></div>
+        <button class="btn primary" type="submit">Entrar</button>
+      </form>
+
+      <form id="register-form" class="form" autocomplete="off" spellcheck="false">
+        <div class="field">
+          <label for="reg-username">Nome de Usuário</label>
+          <input id="reg-username" type="text" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+">
+        </div>
+        <div class="field">
+          <label for="login-email">E-mail</label>
+          <input id="reg-email" type="email" required placeholder="artorias@abyss.com" aria-label="E-mail">
+        </div>
+        <div class="field password-field">
+          <label for="reg-password">Senha</label>
+          <div class="password-wrapper">
+            <input id="reg-password" type="password" required minlength="8">
+            <button type="button" class="toggle-password" data-target="reg-password" aria-label="Mostrar senha">👁</button>
+          </div>
+          <div class="password-hint" id="password-hint">Mínimo de 8 caracteres.</div>
+        </div>
+        <div class="field password-field">
+          <label for="reg-confirm-password">Confirmar Senha</label>
+          <div class="password-wrapper">
+            <input id="reg-confirm-password" type="password" required>
+            <button type="button" class="toggle-password" data-target="reg-confirm-password" aria-label="Mostrar senha">👁</button>
+          </div>
+        </div>
+        <div class="form-error" id="register-error"></div>
+        <button class="btn primary" type="submit">Criar Conta</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Abas
+    const tabLinks = document.querySelectorAll('.tab-link');
+    const forms = document.querySelectorAll('.form');
+    tabLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        tabLinks.forEach(l => l.classList.remove('active'));
+        forms.forEach(f => f.classList.remove('active'));
+        link.classList.add('active');
+        const formId = link.getAttribute('data-form');
+        document.getElementById(formId).classList.add('active');
+      });
+    });
+
+    // Olho senha
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        if (target.type === "password") {
+          target.type = "text";
+          btn.textContent = "🙈";
+          btn.setAttribute("aria-label", "Ocultar senha");
+        } else {
+          target.type = "password";
+          btn.textContent = "👁";
+          btn.setAttribute("aria-label", "Mostrar senha");
+        }
+      });
+    });
+
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const registerForm = document.getElementById('register-form');
+    const registerError = document.getElementById('register-error');
+    const regPassword = document.getElementById('reg-password');
+    const regConfirmPassword = document.getElementById('reg-confirm-password');
+    const passwordHint = document.getElementById('password-hint');
+
+    function validateRegister() {
+      registerError.textContent = '';
+      if (regPassword.value.length < 8) {
+        registerError.textContent = 'A senha deve ter pelo menos 8 caracteres.';
+        return false;
+      }
+      if (regPassword.value !== regConfirmPassword.value) {
+        registerError.textContent = 'As senhas não coincidem.';
+        return false;
+      }
+      return true;
+    }
+
+    regPassword.addEventListener('input', () => {
+      passwordHint.textContent = regPassword.value.length < 8 ? 'A senha deve ter pelo menos 8 caracteres.' : 'Senha válida ✔️';
+    });
+
+    async function getCsrf() {
+      const res = await fetch('/api/auth/csrf', { credentials: 'include' });
+      const data = await res.json();
+      return data.csrfToken;
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginError.textContent = '';
+      try {
+        const csrf = await getCsrf();
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: document.getElementById('login-username').value.trim(),
+            password: document.getElementById('login-password').value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          loginError.textContent = data.error || (data.errors && data.errors.map(e => e.msg).join(', ')) || 'Erro';
+        } else {
+          window.location.href = 'dark_wiki.html';
+        }
+      } catch (err) {
+        loginError.textContent = 'Erro de rede';
+      }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!validateRegister()) return;
+      registerError.textContent = '';
+      try {
+        const csrf = await getCsrf();
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: document.getElementById('reg-username').value.trim(),
+            email:    document.getElementById('reg-email').value.trim(),   // <— use reg-email
+            password: document.getElementById('reg-password').value        // <— password
+          })
+
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          registerError.textContent = data.error || (data.errors && data.errors.map(e => e.msg).join(', ')) || 'Erro';
+        } else {
+          window.location.href = 'dark_wiki.html';
+        }
+      } catch (err) {
+        registerError.textContent = 'Erro de rede';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Gerenciar Usuários</title>
+  <link rel="icon" type="image/png" href="img/bonfire_logo_light.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/fashion_wiki.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <a href="/dark_wiki.html" class="brand">
+        <div class="logo">
+          <img src="img/bonfire_logo_light.png" alt="" style="width:48px;height:48px;border-radius:1500px;object-fit:cover;">
+        </div>
+        <div>
+          <h1>ADMIN • USERS</h1>
+          <p class="muted">Criar, editar, excluir usuários</p>
+        </div>
+      </a>
+      <div class="header-actions">
+        <a class="btn" href="/dark_wiki.html">Voltar</a>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2 class="section-title">Usuários</h2>
+        <div class="field" style="display:flex; gap:12px; align-items:center;">
+          <input id="search" type="text" placeholder="Buscar username..." />
+          <button class="btn" id="reload">Atualizar</button>
+          <button class="btn primary" id="open-create">Novo Usuário</button>
+          <span class="muted small" id="feedback"></span>
+        </div>
+        <div id="users-table" class="cards" style="margin-top:12px;"></div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn" id="prev">Anterior</button>
+          <button class="btn" id="next">Próxima</button>
+          <span class="muted small" id="page-info"></span>
+        </div>
+      </section>
+
+      <section id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); align-items:center; justify-content:center;">
+        <div style="background:var(--panel); border:1px solid var(--border-color); border-radius:12px; padding:16px; min-width:320px;">
+          <h3 id="modal-title" class="section-title">Criar usuário</h3>
+          <form id="modal-form">
+            <div class="field">
+              <label>Username</label>
+              <input name="username" required>
+            </div>
+            <div class="field">
+              <label>E-mail</label>
+              <input name="email" type="email" required>
+            </div>
+            <div class="field">
+              <label>Senha</label>
+              <input name="password" type="password" minlength="8" required>
+            </div>
+            <div class="field">
+              <label>Role</label>
+              <select name="role">
+                <option value="user">user</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex; gap:8px; justify-content:flex-end;">
+              <button type="button" class="btn" id="close-modal">Cancelar</button>
+              <button class="btn primary" type="submit">Salvar</button>
+            </div>
+            <div class="form-error" id="modal-error"></div>
+          </form>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div>© <strong>Dark Souls Wiki</strong> — Admin</div>
+      <div class="muted">SCOM</div>
+    </footer>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>

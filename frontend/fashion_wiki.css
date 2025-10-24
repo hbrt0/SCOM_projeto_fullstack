@@ -1,0 +1,889 @@
+/* --------------------------------
+       TEMAS E VARIÁVEIS
+*/
+
+/* TEMA ESCURO (PADRÃO) */
+:root {
+  --bg: #0b0b0b;
+  --panel: #0f1113;
+  --panel-rgb: 15, 17, 19;
+  --btn-light: 255, 255, 255;
+  --btn-light-text: #333;
+  --text-color: #e6e9eb;
+  --muted: #9da3a6;
+  --accent: #caa34a; /* Dourado */
+  --danger: #b43a3a;
+  --glass: rgba(255, 255, 255, 0.04);
+  --border-color: rgba(255, 255, 255, 0.03);
+  --shadow-color: rgba(0, 0, 0, 0.6);
+  --radius: 12px;
+  --max-width: 1200px;
+  --ease: cubic-bezier(.2, .9, .3, 1);
+}
+
+/* TEMA CLARO (ativado com a classe .light-theme) */
+body.light-theme {
+  --bg: #f0f2f5;
+  --panel: #ffffff;
+  --panel-rgb: 255, 255, 255;
+  --btn-dark: 15, 17, 19;
+  --btn-dark-text: #e6e9eb;
+  --text-color: #333;
+  --muted: #42484d;
+  --accent: #00116e; /* Azul */
+  --danger: #dc3545;
+  --glass: rgba(0, 0, 0, 0.05);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  
+}
+
+/* --------------------------------
+       BASE
+*/
+* {
+  box-sizing: border-box
+}
+
+html,
+body {
+  height: 100%
+}
+
+body {
+  background-image: url('img/artorias-logo.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: top center;
+  background-size: cover;
+
+  margin: 0;
+  padding: 24px; /*manter o espaçamento*/
+  background-color: var(--bg);
+  color: var(--text-color);
+  font-family: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.45;
+  transition: background .25s var(--ease), color .25s var(--ease);
+}
+
+/*container*/
+.wrap {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto; /*centralizar */
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 28px;
+}
+
+/*Header*/
+header.site-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 10px;
+}
+.brand h1 {
+  white-space: nowrap;
+  margin: 0;
+  font-family: Cinzel, serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+.brand p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/*search + actions*/
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--glass);
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  transition: box-shadow .25s var(--ease), transform .25s var(--ease);
+}
+.search #search-input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 14px;
+  min-width: 180px;
+}
+
+/* botão de busca */
+.search-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 8px; /*espaçamento do ícone*/
+  cursor: pointer;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search:focus-within {
+  box-shadow: 0 6px 30px var(--shadow-color);
+  transform: translateY(-1px)
+}
+
+
+
+/* --------------------------------
+    BOTÕES
+*/
+
+.btn {
+  background: rgba(var(--panel-rgb), 0.8);
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: inherit;
+  font-weight: 500;
+  transition: all .18s var(--ease);
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn#btn-theme {
+  background-color: rgba(var(--btn-light), 0.8);
+  color: var(--btn-light-text);
+  min-width: 130px;
+}
+
+body.light-theme .btn#btn-theme {
+  background: rgba(var(--btn-dark), 0.8);
+  color: var(--btn-dark-text);
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.btn.primary {
+  background: linear-gradient(180deg, rgba(202, 163, 74, 0.12), rgba(202, 163, 74, 0.06));
+  border-color: rgba(202, 163, 74, 0.25);
+  color: var(--accent);
+}
+body.light-theme .btn.primary {
+  background: linear-gradient(180deg, rgba(0, 123, 255, 0.1), rgba(0, 123, 255, 0.05));
+  border-color: rgba(0, 123, 255, 0.2);
+}
+
+/* -------------------------------
+       MENU DROPDOWN
+*/
+
+/* container de cada item do menu */
+.dropdown-container {
+  position: relative; /* posicionar o menu dropdown abaixo */
+  display: inline-block;
+}
+/* O link que aciona o dropdown */
+.dropdown-container .dropdown-trigger {
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  font-family: Cinzel, serif;
+}
+/* mostra menu quando o mouse está sobre o container */
+.dropdown-container:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* menu suspenso (escondido por padrão) */
+.dropdown-menu {
+  position: absolute; /* posiciona o menu em relação ao .dropdown-container */
+  top: 100%; /* Aparece logo abaixo do link principal */
+  left: 0;
+  z-index: 1000; /* sobrepor menu sobre outros elementos */
+
+  background-color: var(--panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  min-width: auto;
+  text-wrap: nowrap; /* sem quebra de texto */
+  padding: 8px;
+  box-shadow: 0 8px 16px -4px var(--shadow-color);
+
+  /* Animação de entrada */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+/* links dentro do menu dropdown */
+.dropdown-menu a {
+  display: block; /* Faz cada link ocupar uma linha inteira */
+  width: 100%;
+  padding: 8px 12px;
+  color: var(--muted); /* Usa a cor de texto secundária */
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Efeito hover nos links do dropdown */
+.dropdown-menu a:hover {
+  background-color: var(--glass);
+  color: var(--accent); /* Usa a cor de destaque do tema */
+}
+
+.dropdown-menu .submenu a{
+  font-size: 12px;
+  padding-left: 20px;
+  color: var(--muted);
+  padding-block: 0px;
+
+}
+/* =======================================
+       NAVEGAÇÃO PRINCIPAL DO HEADER
+   ======================================= */
+
+/* O contêiner principal da navegação, agora invisível e responsável por centralizar */
+.header-navigation {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center; /* Centraliza o wrapper */
+  margin-bottom: 8px;
+}
+
+/* O novo "wrapper" que contém os links e o fundo visível */
+.nav-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: rgba(var(--panel-rgb), 0.8);
+  border-radius: var(--radius);
+  padding: 6px;
+}
+/* Links principais da navegação */
+.header-navigation a {
+  padding: 4px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: inherit;
+}
+
+.header-navigation a:hover {
+  background: none;
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* Adiciona o separador vertical entre os itens */
+.header-navigation .dropdown-container:not(:first-child) {
+    border-left: 1px solid var(--border-color);
+    padding-left: 1.2rem;
+    margin-left: 1.2rem; /* Adiciona margem para espaçar melhor */
+}
+/* main content */
+main {
+  background-color: rgba(var(--panel-rgb), 0.85);
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 6px 18px var(--shadow-color);
+  transition: background .25s var(--ease), border-color .25s var(--ease);
+}
+
+
+img#game_logo {
+  width: 100%;
+  display: block;
+  height: auto;
+}
+body.light-theme img#game_logo {
+  content: url("img/ds_wiki_logo_invert.png");
+  width: 100%;
+  display: block;
+  height: auto;
+}
+body.light-theme .logo {
+  content: url("img/bonfire_logo.png");
+  width:64px;
+  height: 64px;
+  border-radius: 1500px;
+  object-fit: cover;
+}
+
+.hero {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+  margin-top:20px
+}
+.hero h2#hero-title {
+  margin: 0 0 6px 0;
+  font-family: Cinzel, serif;
+  font-size: 26px;
+  letter-spacing: 0.6px;
+}
+.hero p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 680px
+}
+
+.section-title {
+  margin-bottom: 12px;
+  font-family: Cinzel, serif;
+  font-size: 20px;
+}
+
+/* article grid */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.cards a {
+  text-decoration: none;
+  color: inherit;
+}
+article.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+}
+
+article.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 36px var(--shadow-color)
+}
+
+.card .thumb {
+  min-width: 110px;
+  height: 80px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.008));
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.card h3 {
+  margin: 0 0 6px 0;
+  font-family: Cinzel, serif;
+  font-size: 18px
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px
+}
+
+/* sidebar */
+aside.sidebar {
+  background-color: rgba(var(--panel-rgb), 0.8);
+  padding: 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  
+  /* Propriedades para fixar a sidebar */
+  position: sticky;
+  top: 24px; /* Distância do topo onde a sidebar vai "grudar" */
+  height: fit-content; /* Garante que a altura se ajuste ao conteúdo */
+  
+  transition: background .25s var(--ease), border-color .25s var(--ease);
+}
+
+.sidebar .cards {
+  grid-template-columns: 1fr; /* Força uma única coluna */
+  gap: 12px;
+}
+
+.sidebar .card {
+  flex-direction: column; /* Empilha a imagem sobre o texto em telas menores se necessário */
+}
+
+.sidebar .card .thumb {
+  width: 100%; /* Faz a imagem ocupar toda a largura do card */
+  height: 100px; /* Altura fixa para as imagens de destaque */
+}
+
+.side-section {
+  margin-bottom: 18px
+}
+
+.side-section h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: var(--muted)
+}
+
+/* small helpers */
+.muted {
+  color: var(--muted)
+}
+
+.kbd {
+  display: inline-block;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* footer */
+footer.site-footer {
+  grid-column: 1/-1;
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  align-items: center;
+}
+
+/* =======================================
+   DROPDOWN DA BARRA NAV LATERAL
+   ======================================= */
+
+.dropdown-container-sidebar {
+  position: relative; /* Essencial para posicionar o menu */
+  display: inline-block; /* Permite que fique na mesma linha dos outros links */
+}
+
+/* O menu suspenso (escondido por padrão) */
+.dropdown-menu-sidebar {
+  position: absolute;
+  top: 100%; /* Aparece logo abaixo do link "Weapons" */
+  left: 0;
+  z-index: 1000;
+
+  background-color: var(--panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  min-width: auto;
+  text-wrap: nowrap;;
+  padding: 8px;
+  box-shadow: 0 8px 16px -4px var(--shadow-color);
+  
+  /* Animação */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.2s ease;
+}
+
+.dropdown-container-sidebar:hover .dropdown-menu-sidebar {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Links dentro do menu */
+.dropdown-menu-sidebar a {
+  display: block;
+  padding: 8px 12px;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.dropdown-menu-sidebar a:hover {
+  background-color: var(--glass);
+  color: var(--accent);
+}
+
+/* =======================================
+    SIDEBAR - NAV
+   ======================================= */
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Uma coluna por padrão na sidebar */
+  gap: 16px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color); /* Linha divisória */
+}
+.nav-item:last-child {
+  border-bottom: none; /* Remove a linha do último item */
+}
+.nav-item h5 {
+  margin: 0 0 4px 0;
+  font-family: Cinzel, serif;
+  font-size: 16px;
+  color: var(--text-color);
+  letter-spacing: 0.5px;
+}
+.nav-item a#inventory{
+  text-decoration: none;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  margin-top: 4px;
+}
+
+.nav-links {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.nav-links a:hover {
+  color: var(--accent);
+}
+/*----------------------------
+  RESPONSIVIDADE
+  ----------------------------*/
+@media (min-width: 980px) and (max-width: 1920px) {
+  .header-navigation {
+    display: none;
+  }
+}
+
+/* responsive */
+@media (max-width: 980px) {
+  .search#search-container {
+    width: 60px; /* Esconde a caixa de pesquisa em telas menores */
+  }
+  .search input {
+    /* Esconde o input por padrão */
+    width: 0;
+    opacity: 0;
+    padding-left: 0;
+    padding-right: 0;
+    cursor: pointer;
+    transition: all 0.4s var(--ease);
+  }
+
+  .search:focus-within {
+    /* Expande o container quando focado */
+    box-shadow: 0 6px 30px var(--shadow-color);
+  }
+
+  .search:focus-within input {
+    /* Expande o input quando o container está focado */
+    width: 180px; /* Largura original do input */
+    opacity: 1;
+    padding-left: 8px; /* Espaço para não sobrepor o ícone */
+    padding-right: 12px;
+    cursor: text;
+  }
+}
+/* Ajuste da caixa de pesquisa para telas menores */
+
+/* Transição suave para os botões do cabeçalho */
+.header-actions .btn {
+  transition: all 0.4s var(--ease);
+}
+
+@media (max-width:980px) {
+  aside.sidebar {
+    display: none
+  }
+  .wrap {
+    grid-template-columns: 1fr;
+    padding-bottom: 60px
+  }
+
+  .cards {
+    grid-template-columns: 1fr
+  }
+
+  .header-actions .search input {
+    min-width: 120px
+  }
+
+
+  header.site-header {
+    flex-wrap: nowrap;
+  }
+
+}
+/* --------------------------------
+       BOTÕES DE AÇÃO
+*/
+
+.fixed-action-buttons {
+  position: fixed;
+  bottom: 92px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column; /* Empilha os botões verticalmente */
+  gap: 12px; /* Espaço entre os botões */
+}
+
+/* Estilo base para todos os botões de ação */
+.action-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  
+  background-color: rgba(var(--panel-rgb), 0.8);
+  border: 1px solid var(--border-color);
+  color: var(--muted);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  cursor: pointer;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  transition: all 0.2s var(--ease);
+
+  /* Estilos para o texto A+ e A- */
+  font-family: Cinzel, serif;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.action-btn:hover {
+  transform: scale(1.1);
+  color: var(--accent);
+}
+
+/* Estilos específicos do botão de música (sobrescrevem o que for necessário) */
+.music-button {
+  font-size: initial; /* Reseta o tamanho da fonte para o SVG */
+}
+
+.music-button .icon-pause { display: none; }
+.music-button.playing .icon-play { display: none; }
+.music-button.playing .icon-pause { display: block; }
+
+/* ----------------------------------
+       BOTÃO de OST
+*/
+
+.music-button {
+  position: fixed; /*fixa na tela */
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+
+  width: 56px;
+  height: 56px;
+  border-radius: 50%; 
+  
+  background-color: rgba(var(--panel-rgb), 0.8);
+  border: 1px solid var(--border-color);
+  color: var(--muted);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  cursor: pointer;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  transition: all 0.2s var(--ease);
+}
+
+.music-button:hover {
+  transform: scale(1.1);
+  color: var(--accent);
+}
+
+/* controle dos ícones de Play/Pause */
+.music-button .icon-pause { display: none; }
+.music-button.playing .icon-play { display: none; }
+.music-button.playing .icon-pause { display: block; }
+
+/* accessibility focus */
+a:focus,
+button:focus,
+input:focus,
+textarea:focus {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  opacity: 0.5; /* Para o outline não ficar tão forte */
+}
+
+/* small visual charms */
+.praise-the-sun {
+  display: inline-block;
+  color: var(--accent);
+  font-family: Cinzel, serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 0 var(--shadow-color);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all .35s var(--ease);
+}
+
+.praise-the-sun.show {
+  opacity: 1;
+  transform: translateY(0)
+}
+
+/*formulario style*/
+form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  background: var(--bg);
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: inherit;
+  min-width: 0;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--muted)
+}
+
+.small {
+  font-size: 13px;
+  color: var(--muted)
+}
+
+/*nome de usuário*/
+.username {
+  color: var(--accent);
+  font-weight: 500;
+  text-wrap: nowrap;
+}
+
+/* === Busca: dropdown abaixo do ícone (mobile) === */
+@media (max-width: 980px) {
+  .search#search-container { 
+    position: relative; 
+    overflow: visible;      /* deixa o dropdown “sair” do container */
+    width: 44px; height: 44px; padding: 0; background: ease; border: 0;
+  }
+
+  .search#search-container .search-button {
+    width: 44px; height: 44px; border-radius: 999px;
+    display: grid; place-items: center;
+    /* mantenha seu visual (bordas/vidro) aqui */
+  }
+
+  /* O input vira um dropdown abaixo do ícone */
+  .search#search-container input {
+    position: absolute;
+    top: calc(100% + 8px);   /* ↓ abaixo do ícone */
+    left: 100%;               /* centraliza no ícone */
+    transform: translateX(-50%) scaleY(0);
+    transform-origin: top center;
+
+    width: clamp(220px, 60vw, 100px);
+    min-width: 0;
+    opacity: 0;
+    pointer-events: none;    /* não intercepta cliques quando fechado */
+    z-index: 20;
+
+    padding: 8px 12px;
+    border-radius: 999px;
+    /* borda/fundo conforme seu tema */
+    transition: transform .25s var(--ease), opacity .25s var(--ease);
+  }
+
+  /* Abre ao focar ou quando o container recebe .open (via JS) */
+  .search#search-container:focus-within input,
+  .search#search-container.open input {
+    background: var(--ease);
+    border: 1px solid var(--border-color);
+    transform: translateX(-50%) scaleY(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+
+/* === Comentários === */
+.comments { margin-top: 2rem; }
+.comments h3 { margin-bottom: .75rem; font-family: Cinzel; }
+
+.comment-form {
+  display: grid;
+  gap: .5rem;
+  max-width: 720px;
+}
+.comment-form input,
+.comment-form textarea {
+  border: 1px solid var(--border-color, #333);
+  background: var(--glass, rgba(255,255,255,.06));
+  color: inherit;
+  padding: .7rem .9rem;
+  border-radius: 12px;
+}
+.comment-form .btn { width: fit-content; }
+
+.comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  gap: .75rem;
+  max-width: 720px;
+}
+.comment-list li {
+  border: 1px solid var(--border-color, #333);
+  background: var(--glass, rgba(255,255,255,.04));
+  border-radius: 12px;
+  padding: .8rem .95rem;
+}
+.comment-list .date {
+  opacity: .7;
+  margin-left: .5rem;
+  font-size: .85em;
+}
+.comment-list p { margin: .35rem 0 0; white-space: pre-wrap; }
