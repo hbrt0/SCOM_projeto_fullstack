@@ -11,92 +11,6 @@
   <link rel="stylesheet" href="/gwyn.css" />
 </head>
 
-<script>
-(function () {
-  const block = document.querySelector(".comments[data-slug]");
-  if (!block) return;
-
-  const slug = block.dataset.slug;
-  const list = block.querySelector(".comment-list");
-  const form = block.querySelector(".comment-form");
-  const hint = block.querySelector(".comment-auth-hint");
-
-  const esc = s => String(s).replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
-  async function getMe() {
-    const r = await fetch('/api/auth/me', { credentials: 'include' });
-    if (r.status === 204) return null;      // ✅ trata anônimo sem tentar .json()
-    if (!r.ok) return null;
-    const user = await r.json();
-    return { authenticated: true, user };
-  }
-
-  async function getCSRF() {
-    const r = await fetch('/api/auth/csrf', { credentials: 'include' });
-    if (!r.ok) return '';
-    const j = await r.json();
-    return j.csrfToken || '';
-  }
-
-  async function loadComments() {
-    list.innerHTML = '<li>Carregando…</li>';
-    try {
-      const res = await fetch(`/api/comments?slug=${encodeURIComponent(slug)}`, { credentials: 'include' });
-      const data = await res.json();
-      list.innerHTML = "";
-      if (!Array.isArray(data) || !data.length) {
-        list.innerHTML = "<li>Seja o primeiro a comentar.</li>";
-        return;
-      }
-      for (const c of data) {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <strong>${esc(c.author)}</strong>
-          <span class="date">${new Date(c.created_at).toLocaleString()}</span>
-          <p>${esc(c.message)}</p>
-        `;
-        list.appendChild(li);
-      }
-    } catch {
-      list.innerHTML = "<li>Não foi possível carregar os comentários.</li>";
-    }
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const fd = new FormData(form);
-    const payload = { slug, message: fd.get("message"), website: fd.get("website") };
-    if (!payload.message) return;
-
-    const btn = form.querySelector("button");
-    btn.disabled = true;
-    try {
-      const token = await getCSRF();
-      const res = await fetch('/api/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
-        body: JSON.stringify(payload),
-        credentials: 'include'  // ✅ manda cookie de sessão
-      });
-      if (res.status === 401) { alert('Faça login para comentar.'); return; }
-      if (!res.ok) { alert('Erro ao enviar o comentário.'); return; }
-      form.reset();
-      await loadComments();
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  (async () => {
-    const me = await getMe();
-    const isAuth = !!(me && me.authenticated);
-    form.hidden = !isAuth;
-    hint.hidden = isAuth;
-    await loadComments();
-  })();
-})();
-</script>
-
 <body class="article-layout">
   <div class="wrap">
     <header class="site-header" role="banner">
@@ -268,22 +182,18 @@
       </section>
 
       <section class="comments" data-slug="gwyn">
-        <h3>Comentários</h3>
+        <h2>Comentários</h2>
 
-        <!-- Mostra isso quando NÃO estiver logado -->
-        <p class="comment-auth-hint" hidden>
-          Para comentar, <a href="/login">faça login</a>.
-        </p>
+        <p class="comment-auth-hint" aria-live="polite">Faça login para comentar.</p>
 
-        <!-- Formulário visível só quando logado -->
-        <form class="comment-form" autocomplete="off" hidden>
-          <input type="text" name="website" style="display:none" tabindex="-1" aria-hidden="true"> <!-- honeypot -->
-          <textarea name="message" placeholder="Escreva um comentário…" required maxlength="2000" rows="4"></textarea>
+        <form class="comment-form" hidden>
+          <textarea id="comment-message" name="message" rows="4" required maxlength="2000" placeholder="Escreva seu comentário..."></textarea>
           <button type="submit" class="btn">Enviar</button>
         </form>
 
-        <ol class="comment-list"></ol>
+        <ul class="comment-list" aria-live="polite"></ul>
       </section>
+
 
     </main>
 
@@ -303,7 +213,7 @@
 </div>
 
 <audio id="background-music" loop>
-  <source src="audio/Firelink Shrine - Dark Souls Soundtrack 03.mp3" type="audio/mpeg">
+  <source src="audio/Gwyn, Lord of Cinder - Dark Souls Soundtrack 28.mp3" type="audio/mpeg">
   Seu navegador não suporta o elemento de áudio.
 </audio>
 

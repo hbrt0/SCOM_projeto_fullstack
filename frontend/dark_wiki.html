@@ -42,98 +42,6 @@
   })();
 </script>
 
-<script>
-(function () {
-  const block = document.querySelector(".comments[data-slug]");
-  if (!block) return;
-
-  const slug = block.dataset.slug;
-  const list = block.querySelector(".comment-list");
-  const form = block.querySelector(".comment-form");
-  const hint = block.querySelector(".comment-auth-hint");
-
-  const esc = s => String(s).replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
-  async function getMe() {
-    const r = await fetch('/api/auth/me', { credentials: 'include' });
-    if (!r.ok) return null;
-    return await r.json();
-  }
-
-  async function getCSRF() {
-    const r = await fetch('/api/auth/csrf', { credentials: 'include' });
-    if (!r.ok) return '';
-    const j = await r.json();
-    return j.csrfToken || '';
-  }
-
-  async function loadComments() {
-    list.innerHTML = '<li>Carregando…</li>';
-    try {
-      const r = await fetch(`/api/comments?slug=${encodeURIComponent(slug)}`, { credentials: 'include' });
-      if (!r.ok) throw new Error('Falha ao listar');
-      const data = await r.json();
-
-      list.innerHTML = "";
-      if (!Array.isArray(data) || !data.length) {
-        list.innerHTML = "<li>Seja o primeiro a comentar.</li>";
-        return;
-      }
-      for (const c of data) {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <strong>${esc(c.author)}</strong>
-          <span class="date">${new Date(c.created_at).toLocaleString()}</span>
-          <p>${esc(c.message)}</p>
-        `;
-        list.appendChild(li);
-      }
-    } catch {
-      list.innerHTML = "<li>Não foi possível carregar os comentários.</li>";
-    }
-  }
-
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = form.querySelector("button[type=submit]");
-    const ta  = form.querySelector("textarea[name=message]");
-    const message = (ta?.value || '').trim();
-    if (!message) return;
-
-    btn.disabled = true;
-    try {
-      const csrf = await getCSRF();
-      const r = await fetch('/api/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrf
-        },
-        body: JSON.stringify({ slug, message }),
-        credentials: 'include'
-      });
-      if (!r.ok) throw new Error('Falha ao enviar');
-      form.reset();
-      await loadComments();
-    } catch (err) {
-      alert('Não foi possível enviar seu comentário.');
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  (async () => {
-    const me = await getMe();       // { authenticated: true/false, user? }
-    const isAuth = !!(me && me.authenticated);
-    if (form) form.hidden = !isAuth;
-    if (hint) hint.hidden = isAuth;
-    await loadComments();
-  })();
-})();
-</script>
-
-
-
 <body>
   <div class="wrap" role="main">
     <header class="site-header" role="banner">
@@ -335,23 +243,19 @@
         </div>
       </section>
 
-      <section class="comments" data-slug="dark_wiki">
-        <h3>Comentários</h3>
+      <section class="comments" data-slug="dark-wiki">
+        <h2>Comentários</h2>
 
-        <!-- Mostra isso quando NÃO estiver logado -->
-        <p class="comment-auth-hint" hidden>
-          Para comentar, <a href="/login">faça login</a>.
-        </p>
+        <p class="comment-auth-hint" aria-live="polite">Faça login para comentar.</p>
 
-        <!-- Formulário visível só quando logado -->
-        <form class="comment-form" autocomplete="off" hidden>
-          <input type="text" name="website" style="display:none" tabindex="-1" aria-hidden="true"> <!-- honeypot -->
-          <textarea name="message" placeholder="Escreva um comentário…" required maxlength="2000" rows="4"></textarea>
+        <form class="comment-form" hidden>
+          <textarea id="comment-message" name="message" rows="4" required maxlength="2000" placeholder="Escreva seu comentário..."></textarea>
           <button type="submit" class="btn">Enviar</button>
         </form>
 
-        <ol class="comment-list"></ol>
+        <ul class="comment-list" aria-live="polite"></ul>
       </section>
+
 
 
     </main>

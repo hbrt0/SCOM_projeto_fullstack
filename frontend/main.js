@@ -166,3 +166,98 @@ if (fontIncreaseButton && fontDecreaseButton) {
     }
   });
 }
+
+// === COMENTÁRIOS ===
+(async function initComments() {
+  const block = document.querySelector('.comments[data-slug]');
+  if (!block) return;
+
+  const slug = block.getAttribute('data-slug');
+  const list = block.querySelector('.comment-list');
+  const form = block.querySelector('.comment-form');
+  const hint = block.querySelector('.comment-auth-hint');
+  const textarea = block.querySelector('#comment-message');
+  const btn = form?.querySelector('button[type="submit"]');
+
+  const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  async function loadComments() {
+    list.innerHTML = '<li>Carregando…</li>';
+    try {
+      const r = await fetch(`/api/comments?slug=${encodeURIComponent(slug)}`, { credentials: 'include' });
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        list.innerHTML = '<li>Seja o primeiro a comentar.</li>';
+        return;
+      }
+      list.innerHTML = '';
+      for (const c of data) {
+        const li = document.createElement('li');
+        li.className = 'comment-item';
+        const when = new Date(c.created_at).toLocaleString();
+        li.innerHTML = `<strong>${esc(c.author)}</strong> — <time datetime="${esc(c.created_at)}">${esc(when)}</time><br>${esc(c.message)}`;
+        list.appendChild(li);
+      }
+    } catch (_) {
+      list.innerHTML = '<li>Não foi possível carregar comentários.</li>';
+    }
+  }
+
+  async function getCsrf() {
+    const r = await fetch('/api/auth/csrf', { credentials: 'include' });
+    if (!r.ok) return '';
+    const j = await r.json();
+    return j.csrfToken || '';
+  }
+
+  // Usa o getMe() que já existe no seu main.js (retorna user ou null).
+  async function me() {
+    try {
+      const r = await fetch('/api/auth/me', { credentials: 'include' });
+      if (r.status === 204) return null;
+      if (!r.ok) return null;
+      const data = await r.json();
+      // compat: pode vir { authenticated, user } OU o user direto
+      return data?.user || data || null;
+    } catch { return null; }
+  }
+
+  // Estado logado vs não logado
+  const user = await me();
+  const isAuth = !!user;
+  if (form) form.hidden = !isAuth;
+  if (hint) hint.hidden = isAuth;
+
+  // Submissão
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!textarea.value.trim()) {
+      textarea.focus();
+      return;
+    }
+    try {
+      btn.disabled = true;
+      const csrf = await getCsrf();
+      const r = await fetch('/api/comments', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrf
+        },
+        body: JSON.stringify({ slug, message: textarea.value.trim() })
+      });
+      if (!r.ok) throw new Error();
+      textarea.value = '';
+      await loadComments();
+    } catch {
+      alert('Não foi possível enviar seu comentário.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Inicial
+  await loadComments();
+})();

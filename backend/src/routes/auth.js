@@ -67,7 +67,7 @@ router.post('/login', loginLimiter, loginValidator, async (req, res, next) => {
     const { username, password } = req.body;
 
     const { rows } = await query(
-      'SELECT id, username, email, password_hash FROM users WHERE username=$1',
+      'SELECT id, username, email, role, password_hash FROM users WHERE username=$1',
       [username]
     );
 
@@ -78,7 +78,13 @@ router.post('/login', loginLimiter, loginValidator, async (req, res, next) => {
     if (!ok) return res.status(401).json({ error: 'Credenciais inválidas' });
 
     delete user.password_hash;
+    await new Promise((resolve, reject) =>
+      req.session.regenerate(err => err ? reject(err) : resolve())
+    );
     req.session.user = user;
+    await new Promise((resolve, reject) =>
+      req.session.save(err => err ? reject(err) : resolve())
+    );
     res.json({ message: 'Login efetuado', user });
   } catch (err) { next(err); }
 });
