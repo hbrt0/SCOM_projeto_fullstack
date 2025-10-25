@@ -1,3 +1,0 @@
--- Cria um usuário admin padrão (ajuste a senha via backend/README)
--- A senha será definida via script / rota segura, portanto aqui apenas exemplo sem hash
--- NÃO use em produção em texto puro.
