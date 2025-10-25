@@ -1,6 +1,6 @@
 import request from 'supertest';
-import { app } from '../backend/src/app.js';
-import { pool } from '../backend/src/db.js';
+import { app } from '../src/app.js';
+import { pool } from '../src/db.js';
 
 afterAll(async () => {
   await pool.end();
