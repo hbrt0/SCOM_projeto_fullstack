@@ -913,3 +913,41 @@ textarea {
   font-size: .85em;
 }
 .comment-list p { margin: .35rem 0 0; white-space: pre-wrap; }
+
+
+header.site-header {
+  align-items: center;
+  min-height: 72px;            /* mantém o cabeçalho com altura estável */
+}
+
+#btn-theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;         /* evita quebra do texto */
+  min-width: 160px;            /* largura suficiente para “Extinguish Flame” */
+  min-height: 38px;
+}
+
+#btn-theme span {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.brand .logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand .logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

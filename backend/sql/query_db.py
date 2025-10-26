@@ -9,7 +9,7 @@ def get_connection(dsn):
 
 def list_users(conn):
     with conn.cursor() as cur:
-        cur.execute("SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC LIMIT 20")
+        cur.execute("SELECT id, username, email, role, created_at FROM users ORDER BY created_at")
         rows = cur.fetchall()
         for row in rows:
             print(f"{row['id']} | {row['username']} | {row['email']} | {row['role']} | {row['created_at']}")
@@ -38,6 +38,15 @@ def list_comments(conn, slug):
         for row in rows:
             print(f"{row['id']} | {row['author']} | {row['created_at']} | {row['message']}")
 
+def promote_admin(conn, username):
+    with conn.cursor() as cur:
+        cur.execute("UPDATE users SET role='admin' WHERE username = %s", (username,))
+        if cur.rowcount:
+            print(f"Usuário '{username}' promovido a admin.")
+        else:
+            print(f"Usuário '{username}' não encontrado.")
+    conn.commit()
+
 
 def main():
     parser = argparse.ArgumentParser(description="Ferramenta simples para consultas admin no banco SCOM.")
@@ -50,6 +59,9 @@ def main():
 
     list_comments_cmd = sub.add_parser("list-comments", help="Lista comentários por slug.")
     list_comments_cmd.add_argument("slug")
+
+    list_comments_cmd = sub.add_parser("promote-admin", help="Promove usuário como admin.")
+    list_comments_cmd.add_argument("username")
 
     args = parser.parse_args()
     if not args.command:
@@ -64,6 +76,8 @@ def main():
             delete_user(conn, args.username)
         elif args.command == "list-comments":
             list_comments(conn, args.slug)
+        elif args.command == "promote-admin":
+            promote_admin(conn, args.username)
     finally:
         conn.close()
 
