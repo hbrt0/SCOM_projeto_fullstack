@@ -50,7 +50,7 @@ def promote_admin(conn, username):
 
 def main():
     parser = argparse.ArgumentParser(description="Ferramenta simples para consultas admin no banco SCOM.")
-    parser.add_argument("--dsn", default="postgres://postgres:postgres@localhost:5432/scomdb", help="Connection string do Postgres.")
+    parser.add_argument("--dsn", default="postgres://postgres:lasanhaa@localhost:5432/scomdb", help="Connection string do Postgres.")
     sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("list-users", help="Lista até 20 usuários.")

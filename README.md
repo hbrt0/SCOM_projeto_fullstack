@@ -1,93 +1,136 @@
-# SCOM • Dark Souls Wiki — Full‑Stack Seguro
+# Dark Souls Wiki – Projeto SCOM (Resumo para Humanos)
 
-Backend em Node.js/Express com autenticação **baseada em sessão** + CSRF; PostgreSQL relacional; rotas de **admin** (CRUD de usuários) e **perfil**; front‑end integrado e validado.
+Este trabalho mostra como construir um site completo ― com páginas bonitas, login, área de administração e cuidados de segurança ― usando a temática Dark Souls. A ideia é provar que estamos aplicando, na prática, tudo o que a disciplina de Segurança Computacional pede.
 
-## Rodando localmente
+---
 
-### 1) Pré‑requisitos
-- Node.js 18+ e npm
-- Docker (opcional, para subir PostgreSQL rapidamente)
+## 1. O que vem no pacote
 
-### 2) Banco de dados
-Suba o Postgres com Docker:
+- **Front-end (`frontend/`)**: páginas HTML/CSS/JS que o usuário final enxerga. Há a wiki (`dark_wiki.html`, `gwyn.html`), a tela de login/cadastro e o painel de administração.
+- **Back-end (`backend/`)**: servidor Node.js/Express que guarda usuários, controla sessões, valida dados, conversa com o banco e entrega o frontend pronto.
+- **Banco de dados (PostgreSQL)**: usado para guardar tudo com segurança (usuários, perfis, comentários e sessões).
+- **Testes automatizados (`backend/__tests__/`)**: scripts que simulam ataques comuns para garantir que as defesas realmente funcionam.
+- **Relatório (`RELATORIO.md`)**: documento que amarra cada requisito do trabalho às soluções colocadas no código.
 
-```bash
-docker compose up -d
-```
+---
 
-Isso cria um Postgres com DB `scomdb` e aplica `backend/sql/init/01_schema.sql` automaticamente.
+## 2. Como o site trabalha por dentro
 
-> Se preferir seu próprio Postgres, aponte `DATABASE_URL` no `.env` e rode o schema:
->
-> ```bash
-> psql $DATABASE_URL -f backend/sql/01_schema.sql
-> ```
+1. **Usuário acessa a wiki** → O navegador baixa os arquivos estáticos (`frontend/`) servidos pelo Express.
+2. **Login/Cadastro** → O formulário chama as rotas `/api/auth/*`. O back-end confere os dados, cria a sessão no banco e envia um cookie seguro para o navegador.
+3. **Sessão ativa** → O front usa `/api/auth/me` para descobrir quem está logado (e se é admin). Com isso ele mostra “Olá, usuário”, botão de logout e, se for caso, link para o painel admin.
+4. **Administração** → As telas `admin.html` + `admin.js` chamam `/api/users`, permitindo criar, editar ou remover usuários com segurança.
+5. **Comentários** → `main.js` carrega os comentários do artigo e deixa o formulário pronto. Só quem está logado pode comentar, e apenas admins enxergam o botão “Excluir”.
+6. **Segurança** → Cada pedido que altera dados exige token CSRF válido, passa por validação de entrada e respeita limites de tentativas. Se algo der errado, o servidor responde com mensagens claras.
 
-### 3) Backend
-```bash
-cp .env.example .env
-npm --prefix backend i
-npm --prefix backend run dev
-```
+---
 
-Servidor em `http://localhost:3000`.
+## 3. Tecnologias (e por que escolhidas)
 
-### 4) HTTPS opcional (requisito do trabalho)
-Gere certificados locais (ex.: `mkcert` ou `openssl`) e habilite no `.env`:
+- **Node.js + Express** – rápida configuração para APIs, grande ecossistema de middlewares (autenticação, segurança, logs).
+- **express-session + connect-pg-simple** – mantém o usuário logado com cookie HttpOnly e armazena a sessão no Postgres, evitando tokens expostos no navegador.
+- **PostgreSQL** – banco relacional que permite criar restrições, índices e relacionamentos (ideal para mostrar boas práticas que a disciplina exige).
+- **helmet** – adiciona cabeçalhos de segurança automaticamente (CSP, proteção contra clickjacking, etc.).
+- **csurf** – protege contra CSRF; o front busca o token em `/api/auth/csrf` sempre que precisa alterar algo.
+- **express-validator** – valida e sanitiza dados ainda no servidor (tamanho, formato, remoção de scripts).
+- **bcryptjs** – faz o hashing das senhas para que nada fique salvo em texto claro.
+- **express-rate-limit** – limita tentativas de login e abuso da API.
+- **Supertest + Jest** – permitem simular chamadas reais ao servidor e escrever testes que provam a segurança do sistema.
+- **HTML/CSS/JS “puro”** – deixa o front leve, sem depender de frameworks pesados, e facilita a revisão pelo professor.
+- **Python (`query_db.py`)** – script auxiliar opcional para listar usuários, promover admin, etc., diretamente no banco (útil para a apresentação).
 
-```
-HTTPS_ENABLED=true
-HTTPS_KEY=./certs/key.pem
-HTTPS_CERT=./certs/cert.pem
-```
+---
 
-Crie a pasta `backend/certs` e coloque os arquivos. Reinicie o servidor.
+## 4. Estrutura explicada arquivo a arquivo
 
-### 5) Front‑end
-Coloque seus arquivos HTML/CSS/JS em `frontend/` (já existem modelos). O Express serve essa pasta estaticamente.
+### 4.1 Backend
 
-### 6) Criar usuário admin
-Crie uma conta via **Cadastro** e depois promova no DB:
+- `package.json` – descreve dependências e scripts (`npm run dev`, `npm start`, `npm test`).
+- `.env.example` / `.env` – guarda configurações sensíveis (porta, conexão com Postgres, segredo de sessão, caminhos dos certificados HTTPS).
+- `src/server.js` – inicia o servidor HTTP ou HTTPS e registra logs.
+- `src/app.js` – coração do Express: aplica Helmet, sessions, CSRF, limitador, rotas e serve o front-end.
+- `src/db.js` – cria o pool de conexões com o Postgres.
+- `src/logger.js` – configura o Winston para logar com timestamp.
+- `src/middleware/` – autenticação (garante admin/usuário), rate limit e tratamento de erros.
+- `src/validators/` – regras do `express-validator` para cadastro/login e rotinas de admin.
+- `src/routes/` – todas as rotas da API:
+  - `auth.js` – cadastro, login, logout, “quem sou eu”, entrega CSRF.
+  - `users.js` – operações para administrador (listar, criar, atualizar, remover).
+  - `profile.js` – leitura/edição do perfil do usuário logado.
+  - `comments.js` – listar, criar e excluir comentários (exclusão só por admin).
+- `sql/init/*.sql` – scripts executados automaticamente pelo Docker para criar tabelas e índices; incluem `users`, `profiles`, `comments` e `session`.
+- `sql/schema.sql` – referência do schema completa.
+- `sql/query_db.py` – ferramenta de linha de comando para tarefas rápidas no banco (listar usuários, promover, etc.).
+- `__tests__/security.test.js` – suíte Jest com cinco testes: CSRF obrigatório, validação contra scripts, fluxo login/cadastro, tentativa de SQL injection e rate limit contra força bruta.
 
-```sql
-UPDATE users SET role='admin' WHERE username='seuUsuario';
-```
+### 4.2 Frontend
 
-Depois acesse `admin.html` para gerenciar usuários.
+- `fashion_wiki.css` – estilos gerais: cores (tema claro/escuro), grid, header, cards, formulários, botões e comentários.
+- `main.js` – lógica compartilhada pelas páginas principais:
+  - troca de tema com armazenamento no navegador;
+  - controle do botão de logout e link “admin” quando o usuário é administrador;
+  - ajuste de fonte e música;
+  - módulo de comentários com carregamento e exclusão para admins.
+- `dark_wiki.html` – home da wiki, com menus, destaques e comentários.
+- `gwyn.html` + `gwyn.css` – página temática do chefe Gwyn, com layout de artigo.
+- `login.html` + `login_style.css` – tela com abas para login/cadastro, validação visual e envio via Fetch API.
+- `admin.html` + `admin.js` – painel com listagem paginada de usuários, busca, modal de criação/edição e exclusão controlada.
+- `img/` e `audio/` – arquivos visuais e trilhas sonoras usados no layout.
 
-## Estrutura
+---
 
-```
-backend/
-  src/
-    app.js            # app Express + middlewares de segurança
-    server.js         # HTTP/HTTPS
-    db.js, logger.js
-    middleware/       # requireAuth, requireAdmin, rate limit, errors
-    routes/           # auth, users (admin), profile
-    validators/       # express-validator rules
-  sql/
-    schema.sql        # tabelas + constraints
-frontend/
-  login.html          # login/cadastro chamando a API
-  admin.html/.js      # interface admin para CRUD de usuários
-  main.js             # integra com sessão do backend
-tests/
-  security.test.js    # testes de CSRF, validação, fluxo básico
-```
+## 5. Como rodar sem stress
 
-## Segurança implementada (overview)
-- **Sessão + cookie HttpOnly** (protege o token contra JS).
-- **CSRF tokens** para mutações (`/api/auth/csrf` fornece o token).
-- **Validação e sanitização** no front e **no back** (express-validator).
-- **Senhas com bcrypt** e **prepared statements** (pg) -> sem SQL injection.
-- **Helmet** (CSP, X-Frame, X-Content-Type, etc.).
-- **Rate limiting**: tentativas de login (brute force) e para toda API.
-- **Limite de payload (100kb)** e feedback claro de erros.
-- **Logs** (Winston + morgan), **tratamento central de erros**.
-- **Paginação** no admin.
-- **Constraints** no banco (UNIQUE, CHECK, FK).
+1. **Pré-requisitos**  
+   - Node.js 18 ou superior.  
+   - PostgreSQL (local ou via Docker). Há um `docker-compose.yml` pronto:
+     ```bash
+     docker compose up -d
+     ```
+2. **Configuração**  
+   ```bash
+   cp backend/.env.example backend/.env   # ajuste os valores conforme sua máquina
+   npm --prefix backend install           # instala dependências do servidor
+   ```
+3. **Rodando o servidor**  
+   ```bash
+   npm --prefix backend run dev   # desenvolvimento (hot reload)
+   # ou
+   npm --prefix backend start     # execução simples
+   ```
+   O site ficará em `http://localhost:3000`. Para usar HTTPS, gere certificados (`mkcert`, `openssl`, etc.), coloque em `backend/certs/` e marque `HTTPS_ENABLED=true` no `.env`.
+4. **Testes de segurança**  
+   ```bash
+   npm --prefix backend test
+   ```
+   O comando roda o Jest e exibe as proteções funcionando na prática (saídas 403, 401 e 429 conforme esperado).
+5. **Promover um admin rapidamente**  
+   ```bash
+   python backend/sql/query_db.py promote-admin nomeDoUsuario
+   ```
+   …ou rodar o `UPDATE users SET role='admin' WHERE username='...'` direto no banco.
 
-## Scripts
-- `npm --prefix backend run dev` – hot reload
-- `npm test` – roda testes (ajuste banco e .env para ambiente de teste)
+---
+
+## 6. Por que o projeto é seguro (explicação simples)
+
+- **Senhas protegidas**: antes de ir para o banco, a senha passa por hashing com bcrypt. Mesmo que o banco vazasse, ninguém veria a senha real.
+- **Sessão guardada no servidor**: o navegador recebe apenas um cookie “abre portas” que é HttpOnly (JavaScript não toca). Isso evita roubo simples de sessão.
+- **Token CSRF obrigatório**: toda ação que altera dados precisa enviar um token secreto gerado pelo servidor. Se algum site malicioso tentar enviar uma requisição por você, ela falha.
+- **Validação dupla**: os formulários front-end já restringem entradas, mas o back-end confere tudo de novo e sanitiza, impedindo scripts maliciosos.
+- **Consultas ao banco com parâmetros**: não existe montagem de SQL por string concatenada; o Postgres recebe os valores de forma segura, matando SQL injection.
+- **Rate limit**: o servidor observa repetidas tentativas de login e fecha a porta (status 429) se alguém insistir demais, evitando ataques de força bruta.
+- **Cabeçalhos certos**: o Helmet liga proteções nativas do navegador (CSP, X-Frame-Options, etc.).
+- **Erros controlados**: se algo sai errado, o usuário recebe uma mensagem amigável e sem detalhes técnicos; o log interno registra o que aconteceu para o time corrigir depois.
+- **Testes automatizados**: há testes que simulam todas essas situações, provando que as defesas respondem exatamente como planejado (e continuaremos rodando-os sempre que algo mudar).  
+
+---
+
+## 7. Dicas para apresentação
+
+1. **Demonstre a navegação** – mostre o tema escuro/claro, ajuste de fonte, comentários e trilha sonora.
+2. **Login e painel admin** – crie um usuário, promova a admin e use a tela para editar e excluir, citando o uso de CSRF e rate limit.
+3. **Comente sobre as medidas de segurança** – explique em linguagem simples as oito bullet points acima.
+4. **Mostre os testes** – execute `npm --prefix backend test` durante a apresentação; o terminal exibe cada verificação (CSRF, sanitização, SQL injection bloqueado, etc.).
+5. **Mencione o HTTPS** – explique como gerar os certificados e mostre que o servidor aceita conexão segura (mesmo que o navegador avise que é autoassinado).  
+
