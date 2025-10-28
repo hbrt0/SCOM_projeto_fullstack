@@ -1,136 +1,185 @@
-# Dark Souls Wiki – Projeto SCOM (Resumo para Humanos)
+# Dark Souls Wiki – Guia de Execução
 
-Este trabalho mostra como construir um site completo ― com páginas bonitas, login, área de administração e cuidados de segurança ― usando a temática Dark Souls. A ideia é provar que estamos aplicando, na prática, tudo o que a disciplina de Segurança Computacional pede.
-
----
-
-## 1. O que vem no pacote
-
-- **Front-end (`frontend/`)**: páginas HTML/CSS/JS que o usuário final enxerga. Há a wiki (`dark_wiki.html`, `gwyn.html`), a tela de login/cadastro e o painel de administração.
-- **Back-end (`backend/`)**: servidor Node.js/Express que guarda usuários, controla sessões, valida dados, conversa com o banco e entrega o frontend pronto.
-- **Banco de dados (PostgreSQL)**: usado para guardar tudo com segurança (usuários, perfis, comentários e sessões).
-- **Testes automatizados (`backend/__tests__/`)**: scripts que simulam ataques comuns para garantir que as defesas realmente funcionam.
-- **Relatório (`RELATORIO.md`)**: documento que amarra cada requisito do trabalho às soluções colocadas no código.
+Este documento explica como preparar, executar e validar o projeto **SCOM – Dark Souls Wiki Seguro** em uma máquina local (sem Docker). Use-o como roteiro durante a apresentação.
 
 ---
 
-## 2. Como o site trabalha por dentro
+## 1. Pré-requisitos
 
-1. **Usuário acessa a wiki** → O navegador baixa os arquivos estáticos (`frontend/`) servidos pelo Express.
-2. **Login/Cadastro** → O formulário chama as rotas `/api/auth/*`. O back-end confere os dados, cria a sessão no banco e envia um cookie seguro para o navegador.
-3. **Sessão ativa** → O front usa `/api/auth/me` para descobrir quem está logado (e se é admin). Com isso ele mostra “Olá, usuário”, botão de logout e, se for caso, link para o painel admin.
-4. **Administração** → As telas `admin.html` + `admin.js` chamam `/api/users`, permitindo criar, editar ou remover usuários com segurança.
-5. **Comentários** → `main.js` carrega os comentários do artigo e deixa o formulário pronto. Só quem está logado pode comentar, e apenas admins enxergam o botão “Excluir”.
-6. **Segurança** → Cada pedido que altera dados exige token CSRF válido, passa por validação de entrada e respeita limites de tentativas. Se algo der errado, o servidor responde com mensagens claras.
+| Software | Versão recomendada | Observações |
+|----------|--------------------|-------------|
+| Node.js  | 18.x ou superior   | Inclui o npm, usado para instalar dependências do backend. |
+| PostgreSQL | 16.x (local)     | Serviço precisa estar ativo. Anote usuário, senha e porta escolhidos no instalador. |
+| Python (opcional) | 3.10+     | Apenas se quiser utilizar o script `backend/sql/query_db.py` para consultas rápidas. |
 
----
-
-## 3. Tecnologias (e por que escolhidas)
-
-- **Node.js + Express** – rápida configuração para APIs, grande ecossistema de middlewares (autenticação, segurança, logs).
-- **express-session + connect-pg-simple** – mantém o usuário logado com cookie HttpOnly e armazena a sessão no Postgres, evitando tokens expostos no navegador.
-- **PostgreSQL** – banco relacional que permite criar restrições, índices e relacionamentos (ideal para mostrar boas práticas que a disciplina exige).
-- **helmet** – adiciona cabeçalhos de segurança automaticamente (CSP, proteção contra clickjacking, etc.).
-- **csurf** – protege contra CSRF; o front busca o token em `/api/auth/csrf` sempre que precisa alterar algo.
-- **express-validator** – valida e sanitiza dados ainda no servidor (tamanho, formato, remoção de scripts).
-- **bcryptjs** – faz o hashing das senhas para que nada fique salvo em texto claro.
-- **express-rate-limit** – limita tentativas de login e abuso da API.
-- **Supertest + Jest** – permitem simular chamadas reais ao servidor e escrever testes que provam a segurança do sistema.
-- **HTML/CSS/JS “puro”** – deixa o front leve, sem depender de frameworks pesados, e facilita a revisão pelo professor.
-- **Python (`query_db.py`)** – script auxiliar opcional para listar usuários, promover admin, etc., diretamente no banco (útil para a apresentação).
+> **Dica:** Durante a instalação do PostgreSQL, marque a opção para instalar os utilitários de linha de comando (`psql`), eles serão úteis para aplicar o schema.
 
 ---
 
-## 4. Estrutura explicada arquivo a arquivo
+## 2. Clonar o projeto
 
-### 4.1 Backend
-
-- `package.json` – descreve dependências e scripts (`npm run dev`, `npm start`, `npm test`).
-- `.env.example` / `.env` – guarda configurações sensíveis (porta, conexão com Postgres, segredo de sessão, caminhos dos certificados HTTPS).
-- `src/server.js` – inicia o servidor HTTP ou HTTPS e registra logs.
-- `src/app.js` – coração do Express: aplica Helmet, sessions, CSRF, limitador, rotas e serve o front-end.
-- `src/db.js` – cria o pool de conexões com o Postgres.
-- `src/logger.js` – configura o Winston para logar com timestamp.
-- `src/middleware/` – autenticação (garante admin/usuário), rate limit e tratamento de erros.
-- `src/validators/` – regras do `express-validator` para cadastro/login e rotinas de admin.
-- `src/routes/` – todas as rotas da API:
-  - `auth.js` – cadastro, login, logout, “quem sou eu”, entrega CSRF.
-  - `users.js` – operações para administrador (listar, criar, atualizar, remover).
-  - `profile.js` – leitura/edição do perfil do usuário logado.
-  - `comments.js` – listar, criar e excluir comentários (exclusão só por admin).
-- `sql/init/*.sql` – scripts executados automaticamente pelo Docker para criar tabelas e índices; incluem `users`, `profiles`, `comments` e `session`.
-- `sql/schema.sql` – referência do schema completa.
-- `sql/query_db.py` – ferramenta de linha de comando para tarefas rápidas no banco (listar usuários, promover, etc.).
-- `__tests__/security.test.js` – suíte Jest com cinco testes: CSRF obrigatório, validação contra scripts, fluxo login/cadastro, tentativa de SQL injection e rate limit contra força bruta.
-
-### 4.2 Frontend
-
-- `fashion_wiki.css` – estilos gerais: cores (tema claro/escuro), grid, header, cards, formulários, botões e comentários.
-- `main.js` – lógica compartilhada pelas páginas principais:
-  - troca de tema com armazenamento no navegador;
-  - controle do botão de logout e link “admin” quando o usuário é administrador;
-  - ajuste de fonte e música;
-  - módulo de comentários com carregamento e exclusão para admins.
-- `dark_wiki.html` – home da wiki, com menus, destaques e comentários.
-- `gwyn.html` + `gwyn.css` – página temática do chefe Gwyn, com layout de artigo.
-- `login.html` + `login_style.css` – tela com abas para login/cadastro, validação visual e envio via Fetch API.
-- `admin.html` + `admin.js` – painel com listagem paginada de usuários, busca, modal de criação/edição e exclusão controlada.
-- `img/` e `audio/` – arquivos visuais e trilhas sonoras usados no layout.
+```bash
+git clone <url-do-repositorio> SCOM_projeto_fullstack_v1
+cd SCOM_projeto_fullstack_v1
+```
 
 ---
 
-## 5. Como rodar sem stress
+## 3. Configurar o banco de dados
 
-1. **Pré-requisitos**  
-   - Node.js 18 ou superior.  
-   - PostgreSQL (local ou via Docker). Há um `docker-compose.yml` pronto:
-     ```bash
-     docker compose up -d
-     ```
-2. **Configuração**  
-   ```bash
-   cp backend/.env.example backend/.env   # ajuste os valores conforme sua máquina
-   npm --prefix backend install           # instala dependências do servidor
+1. Inicie o console `psql`:
+   ```powershell
+   psql -U postgres
    ```
-3. **Rodando o servidor**  
+2. Crie o banco que será utilizado pela aplicação:
+   ```sql
+   CREATE DATABASE scomdb;
+   \q
+   ```
+3. Aplique o schema completo:
+   ```powershell
+   psql -U postgres -d scomdb -f backend/sql/schema.sql
+   ```
+4. Opcional: verifique as tabelas
+   ```powershell
+   psql -U postgres -d scomdb -c "\dt"
+   ```
+
+Resultado esperado: tabelas `users`, `profiles`, `comments` e `"session"` listadas.
+
+---
+
+## 4. Configurar variáveis de ambiente
+
+1. Copie o arquivo de exemplo:
    ```bash
-   npm --prefix backend run dev   # desenvolvimento (hot reload)
+   copy backend\.env.example backend\.env   # PowerShell
    # ou
-   npm --prefix backend start     # execução simples
+   cp backend/.env.example backend/.env     # Git Bash / WSL
    ```
-   O site ficará em `http://localhost:3000`. Para usar HTTPS, gere certificados (`mkcert`, `openssl`, etc.), coloque em `backend/certs/` e marque `HTTPS_ENABLED=true` no `.env`.
-4. **Testes de segurança**  
-   ```bash
-   npm --prefix backend test
+2. Abra `backend/.env` e ajuste:
+   ```env
+   NODE_ENV=development
+   PORT=3000
+   DATABASE_URL=postgres://postgres:<sua_senha>@localhost:5432/scomdb
+   SESSION_SECRET=<gere-uma-string-aleatoria>
+   HTTPS_ENABLED=false
+   # HTTPS_KEY e HTTPS_CERT só serão usados se HTTPS_ENABLED=true
    ```
-   O comando roda o Jest e exibe as proteções funcionando na prática (saídas 403, 401 e 429 conforme esperado).
-5. **Promover um admin rapidamente**  
-   ```bash
-   python backend/sql/query_db.py promote-admin nomeDoUsuario
-   ```
-   …ou rodar o `UPDATE users SET role='admin' WHERE username='...'` direto no banco.
+3. Se for habilitar HTTPS localmente, gere `key.pem` e `cert.pem` dentro de `backend/certs/` e aponte o caminho correto no `.env`.
 
 ---
 
-## 6. Por que o projeto é seguro (explicação simples)
+## 5. Instalar dependências do backend
 
-- **Senhas protegidas**: antes de ir para o banco, a senha passa por hashing com bcrypt. Mesmo que o banco vazasse, ninguém veria a senha real.
-- **Sessão guardada no servidor**: o navegador recebe apenas um cookie “abre portas” que é HttpOnly (JavaScript não toca). Isso evita roubo simples de sessão.
-- **Token CSRF obrigatório**: toda ação que altera dados precisa enviar um token secreto gerado pelo servidor. Se algum site malicioso tentar enviar uma requisição por você, ela falha.
-- **Validação dupla**: os formulários front-end já restringem entradas, mas o back-end confere tudo de novo e sanitiza, impedindo scripts maliciosos.
-- **Consultas ao banco com parâmetros**: não existe montagem de SQL por string concatenada; o Postgres recebe os valores de forma segura, matando SQL injection.
-- **Rate limit**: o servidor observa repetidas tentativas de login e fecha a porta (status 429) se alguém insistir demais, evitando ataques de força bruta.
-- **Cabeçalhos certos**: o Helmet liga proteções nativas do navegador (CSP, X-Frame-Options, etc.).
-- **Erros controlados**: se algo sai errado, o usuário recebe uma mensagem amigável e sem detalhes técnicos; o log interno registra o que aconteceu para o time corrigir depois.
-- **Testes automatizados**: há testes que simulam todas essas situações, provando que as defesas respondem exatamente como planejado (e continuaremos rodando-os sempre que algo mudar).  
+```bash
+npm --prefix backend install
+```
+
+Isso cria `backend/node_modules/` (ignorado pelo Git).
 
 ---
 
-## 7. Dicas para apresentação
+## 6. Executar o servidor
 
-1. **Demonstre a navegação** – mostre o tema escuro/claro, ajuste de fonte, comentários e trilha sonora.
-2. **Login e painel admin** – crie um usuário, promova a admin e use a tela para editar e excluir, citando o uso de CSRF e rate limit.
-3. **Comente sobre as medidas de segurança** – explique em linguagem simples as oito bullet points acima.
-4. **Mostre os testes** – execute `npm --prefix backend test` durante a apresentação; o terminal exibe cada verificação (CSRF, sanitização, SQL injection bloqueado, etc.).
-5. **Mencione o HTTPS** – explique como gerar os certificados e mostre que o servidor aceita conexão segura (mesmo que o navegador avise que é autoassinado).  
+- Ambiente de desenvolvimento (nodemon):
+  ```bash
+  npm --prefix backend run dev
+  ```
+- Ambiente simples (sem hot reload):
+  ```bash
+  npm --prefix backend start
+  ```
 
+Logs esperados:
+```
+HTTP server rodando em http://localhost:3000
+```
+ou
+```
+HTTPS server rodando em https://localhost:3000
+```
+
+---
+
+## 7. Acessar as páginas
+
+| Página | URL local | Observações |
+|--------|-----------|-------------|
+| Wiki principal | `http://localhost:3000/dark_wiki.html` | Conteúdo público, alterna tema, mostra comentários. |
+| Artigo do boss | `http://localhost:3000/gwyn.html` | Página temática com mesmos recursos da wiki. |
+| Login/Cadastro | `http://localhost:3000/login.html` | Abas para login e cadastro, validações front-end. |
+| Painel Admin | `http://localhost:3000/admin.html` | Necessita usuário com `role=admin`. |
+
+---
+
+## 8. Criar e promover usuários
+
+Faça cadastro via `login.html`. Depois, promova o usuário a admin de uma das formas:
+
+- **Via script Python** (se instalado):
+  ```bash
+  python backend/sql/query_db.py promote-admin seu_usuario
+  ```
+- **Via SQL direto**:
+  ```sql
+  UPDATE users SET role='admin' WHERE username='seu_usuario';
+  ```
+
+Com a promoção feita, acesse `admin.html` para criar/editar/excluir outros usuários.
+
+---
+
+## 9. Rodar os testes de segurança
+
+```bash
+npm --prefix backend test
+```
+
+O Jest executa cinco cenários cobrindo CSRF, sanitização de entrada, fluxo completo de autenticação, bloqueio de SQL injection e rate limit anti força-bruta. Utilize esse comando durante a apresentação para evidenciar as proteções implementadas.
+
+---
+
+## 10. Estrutura relevante para consulta rápida
+
+```
+backend/
+  src/
+    app.js            # Middlewares, sessões, rotas e estáticos
+    server.js         # Inicia HTTP/HTTPS
+    db.js / logger.js # Conexão Postgres e logs
+    middleware/       # requireAuth, requireAdmin, rate limit, errors
+    routes/           # auth, users, profile, comments
+    validators/       # Regras de validação com express-validator
+  sql/
+    schema.sql        # Script completo do banco
+    query_db.py       # Utilitário CLI (list, delete, promote, etc.)
+  __tests__/
+    security.test.js  # Testes automatizados com Supertest/Jest
+frontend/
+  dark_wiki.html, gwyn.html, login.html, admin.html
+  fashion_wiki.css, main.js, admin.js, login_style.css, gwyn.css
+```
+
+---
+
+## 11. Problemas comuns e soluções
+
+| Sintoma | Possível causa | Solução |
+|---------|----------------|---------|
+| `Error: connect ECONNREFUSED ::1:5432` | Postgres não está rodando ou credenciais erradas. | Verifique serviço do Postgres e `DATABASE_URL`. |
+| `FATAL: password authentication failed` | Senha no `.env` diferente da senha do banco. | Atualize o `.env` ou redefina a senha no Postgres. |
+| Testes falham em “mutações sem CSRF” | Cookie/token não sendo enviados. | Execute `npm --prefix backend test` com o Postgres ativo; o comando obtém tokens automaticamente. |
+| Navegador avisa “Conexão não segura” | HTTPS com certificado autoassinado. | Concorde com o aviso ou instale uma CA local (ex.: mkcert). |
+
+---
+
+## 12. Durante a apresentação
+
+1. Mostrar o site (`dark_wiki.html`), alternar temas e comentar sobre o JS responsável.
+2. Realizar cadastro/login, promover usuário a admin, abrir `admin.html` e criar/editar/excluir usuários.
+3. Demonstrar comentários, incluindo a opção “Excluir” visível apenas para administradores.
+4. Executar `npm --prefix backend test` para evidenciar as proteções automáticas.
+5. Mencionar que HTTPS pode ser ativado gerando certificados em `backend/certs/`.
+
+Com esse roteiro você cobre todo o ciclo exigido pelo trabalho, desde a instalação até as provas de segurança.
