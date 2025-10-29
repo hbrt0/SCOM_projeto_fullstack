@@ -1,6 +1,6 @@
 # Dark Souls Wiki – Guia de Execução
 
-Este documento explica como preparar, executar e validar o projeto **SCOM – Dark Souls Wiki Seguro** em uma máquina local (sem Docker). Use-o como roteiro durante a apresentação.
+Este documento explica como preparar, executar e validar o projeto **SCOM – Dark Souls Wiki** em uma máquina local.
 
 ---
 
@@ -136,7 +136,7 @@ Com a promoção feita, acesse `admin.html` para criar/editar/excluir outros usu
 npm --prefix backend test
 ```
 
-O Jest executa cinco cenários cobrindo CSRF, sanitização de entrada, fluxo completo de autenticação, bloqueio de SQL injection e rate limit anti força-bruta. Utilize esse comando durante a apresentação para evidenciar as proteções implementadas.
+O Jest executa cinco cenários cobrindo CSRF, sanitização de entrada, fluxo completo de autenticação, bloqueio de SQL injection e rate limit anti força-bruta.
 
 ---
 
