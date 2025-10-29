@@ -109,6 +109,7 @@ HTTPS server rodando em https://localhost:3000
 | Wiki principal | `http://localhost:3000/dark_wiki.html` | Conteúdo público, alterna tema, mostra comentários. |
 | Artigo do boss | `http://localhost:3000/gwyn.html` | Página temática com mesmos recursos da wiki. |
 | Login/Cadastro | `http://localhost:3000/login.html` | Abas para login e cadastro, validações front-end. |
+| Meu Perfil | `http://localhost:3000/profile.html` | Permite editar Nome e Bio (usa tabela `profiles`). Necessita login. |
 | Painel Admin | `http://localhost:3000/admin.html` | Necessita usuário com `role=admin`. |
 
 ---

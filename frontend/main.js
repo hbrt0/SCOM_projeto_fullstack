@@ -87,10 +87,35 @@
     if (!headerActions) return;
     const user = await getMe();
     if (user && loginButton) {
-      // Substitui botão de login por boas-vindas + logout
+      // Substitui botão de login por boas-vindas + links úteis + logout
       const welcomeMessage = document.createElement('div');
       welcomeMessage.className = 'user-welcome';
-      welcomeMessage.innerHTML = `Olá, <span class="username">${escapeHtml(user.username)}</span> • <a class="btn" href="admin.html" ${user.role === 'admin' ? '' : 'style="display:none"'}>Admin</a>`;
+
+      const greet = document.createElement('span');
+      greet.className = 'user-greet';
+      greet.innerHTML = `Olá, <span class="username">${escapeHtml(user.username)}</span>`;
+
+      const linksWrapper = document.createElement('div');
+      linksWrapper.className = 'user-links';
+
+      const profileLink = document.createElement('a');
+      profileLink.className = 'btn';
+      profileLink.href = 'profile.html';
+      profileLink.textContent = 'Meu Perfil';
+      linksWrapper.appendChild(profileLink);
+
+      const adminLink = document.createElement('a');
+      adminLink.className = 'btn';
+      adminLink.href = 'admin.html';
+      adminLink.textContent = 'Admin';
+      if (user.role !== 'admin') {
+        adminLink.style.display = 'none';
+      }
+      linksWrapper.appendChild(adminLink);
+
+      welcomeMessage.appendChild(greet);
+      welcomeMessage.appendChild(linksWrapper);
+
       const logoutButton = document.createElement('button');
       logoutButton.className = 'btn';
       logoutButton.textContent = 'Logout';
@@ -108,6 +133,7 @@
       headerActions.appendChild(logoutButton);
     }
   }
+
   renderAuth();
 
   // === CONTROLE DO BOTAO DE MUSICA ===

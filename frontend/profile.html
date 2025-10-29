@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meu Perfil – Dark Souls Wiki</title>
+  <meta name="description" content="Atualize suas informações de perfil na Dark Souls Wiki.">
+  <link rel="icon" type="image/png" href="img/bonfire_logo_light.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/fashion_wiki.css" />
+</head>
+<body>
+  <div class="wrap" role="main">
+    <header class="site-header" role="banner">
+      <a href="/dark_wiki.html" class="brand" aria-label="Voltar para a Dark Souls Wiki">
+        <div class="logo" aria-hidden="true">
+          <img src="img/bonfire_logo_light.png" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:1500px;">
+        </div>
+        <div>
+          <h1>MEU PERFIL</h1>
+          <p class="muted">Atualize suas informações pessoais</p>
+        </div>
+      </a>
+      <div class="header-actions">
+        <button class="btn" id="btn-theme" aria-pressed="false" title="Alternar tema">
+          <span id="theme-label">Light Bonfire</span>
+        </button>
+        <a class="btn primary" id="btn-login" href="/login.html">Login</a>
+      </div>
+    </header>
+
+    <main class="profile-main" aria-labelledby="profile-title">
+      <section class="profile-card">
+        <h2 id="profile-title">Informações do Perfil</h2>
+        <p class="muted">Mantenha seu nome e bio atualizados para que outros visitantes conheçam você.</p>
+
+        <div id="profile-loading" class="profile-loading">Carregando...</div>
+        <div id="profile-message" class="profile-message" hidden></div>
+
+        <form id="profile-form" class="profile-form" novalidate>
+          <label class="field">
+            <span>Nome completo</span>
+            <input id="profile-full-name" name="full_name" type="text" maxlength="120" placeholder="Artorias of the Abyss">
+          </label>
+
+          <label class="field">
+            <span>Bio</span>
+            <textarea id="profile-bio" name="bio" rows="5" maxlength="500" placeholder="Conte um pouco sobre você..."></textarea>
+          </label>
+
+          <button type="submit" class="btn primary">Salvar alterações</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div><strong>Dark Souls Wiki</strong> – Projeto SCOM</div>
+      <div class="muted">Yes, indeed... | <span class="muted">HTML • CSS • JS</span></div>
+    </footer>
+  </div>
+
+  <script src="main.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>

@@ -914,6 +914,79 @@ textarea {
 }
 .comment-list p { margin: .35rem 0 0; white-space: pre-wrap; }
 
+.user-welcome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-links {
+  display: flex;
+  gap: 8px;
+}
+
+/* === Perfil === */
+.profile-main {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+
+.profile-card {
+  width: min(720px, 100%);
+  background: var(--glass, rgba(255, 255, 255, .04));
+  border: 1px solid var(--border-color, #333);
+  border-radius: var(--radius);
+  padding: 32px;
+  backdrop-filter: blur(6px);
+  display: grid;
+  gap: 20px;
+}
+
+.profile-form {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-form .field {
+  display: grid;
+  gap: 6px;
+}
+
+.profile-form input,
+.profile-form textarea {
+  border: 1px solid var(--border-color, #333);
+  border-radius: 12px;
+  background: var(--glass, rgba(255, 255, 255, .06));
+  color: inherit;
+  padding: 10px 14px;
+  resize: vertical;
+}
+
+.profile-loading {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.profile-message {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.profile-message[data-type="success"] {
+  background: rgba(0, 128, 64, 0.12);
+  border: 1px solid rgba(0, 128, 64, 0.3);
+  color: #58d68d;
+}
+
+.profile-message[data-type="error"] {
+  background: rgba(180, 58, 58, 0.12);
+  border: 1px solid rgba(180, 58, 58, 0.3);
+  color: #ff7474;
+}
+
 
 header.site-header {
   align-items: center;
