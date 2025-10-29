@@ -162,24 +162,3 @@ frontend/
 ```
 
 ---
-
-## 11. Problemas comuns e soluções
-
-| Sintoma | Possível causa | Solução |
-|---------|----------------|---------|
-| `Error: connect ECONNREFUSED ::1:5432` | Postgres não está rodando ou credenciais erradas. | Verifique serviço do Postgres e `DATABASE_URL`. |
-| `FATAL: password authentication failed` | Senha no `.env` diferente da senha do banco. | Atualize o `.env` ou redefina a senha no Postgres. |
-| Testes falham em “mutações sem CSRF” | Cookie/token não sendo enviados. | Execute `npm --prefix backend test` com o Postgres ativo; o comando obtém tokens automaticamente. |
-| Navegador avisa “Conexão não segura” | HTTPS com certificado autoassinado. | Concorde com o aviso ou instale uma CA local (ex.: mkcert). |
-
----
-
-## 12. Durante a apresentação
-
-1. Mostrar o site (`dark_wiki.html`), alternar temas e comentar sobre o JS responsável.
-2. Realizar cadastro/login, promover usuário a admin, abrir `admin.html` e criar/editar/excluir usuários.
-3. Demonstrar comentários, incluindo a opção “Excluir” visível apenas para administradores.
-4. Executar `npm --prefix backend test` para evidenciar as proteções automáticas.
-5. Mencionar que HTTPS pode ser ativado gerando certificados em `backend/certs/`.
-
-Com esse roteiro você cobre todo o ciclo exigido pelo trabalho, desde a instalação até as provas de segurança.
